@@ -21,8 +21,8 @@ func (i *Installer) Install(c *Config) error {
 	}
 	tokenGetter := NewOAuthTokenGetter()
 	_, err = tokenGetter.GetAndSaveToken(c.CredentialPath, c.TokenPath, c.BrowserApp)
-	calender := NewCalender(c)
-	_, err = calender.GetCalenderEvents(time.Now())
+	calendar := NewCalendar(c)
+	_, err = calendar.GetCalendarEvents(time.Now())
 	if err != nil {
 		return fmt.Errorf("カレンダーサービスのアクセスに失敗しました: %v", err)
 	}

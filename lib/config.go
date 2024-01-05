@@ -47,6 +47,10 @@ func (c *Config) IsValid() error {
 	return nil
 }
 
+func (c *Config) String() string {
+	return fmt.Sprintf(`設定値:クレデンシャルファイルパス=%s,会議起動時間=%d 分前,ブラウザアプリケーション=%s`, c.CredentialPath, c.SearchMinutes, c.BrowserApp)
+}
+
 func (c *Config) InstructString() string {
 	return fmt.Sprintf(`
 ## 設定
@@ -59,21 +63,15 @@ func (c *Config) InstructString() string {
 LaunchAgentファイル : %s
 
 ## 使い方
-以下のコマンドでサービスデーモンを起動してください。
+以下のコマンドで起動してください。
 $ launchctl load %s
 
-サービスデーモンを終了する場合は以下のコマンドを実行してください。
-$ launchctl unload %s
-
-ログは以下の場所に出力されます。
+実行ログは以下の場所に出力されます。
 %s
-
-アンインストールする場合はデーモンを終了した後、以下のコマンドでインストールディレクトリを削除してください。
-$ rm -rf %s
 `,
 		c.CredentialPath, c.BrowserApp, c.SearchMinutes,
 		c.InstallDir, c.PlistPath,
-		c.PlistPath, c.PlistPath, c.LogPath, c.InstallDir)
+		c.PlistPath, c.LogPath)
 }
 
 func (c *Config) GeneratePlistStr() string {

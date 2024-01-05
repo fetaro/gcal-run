@@ -6,8 +6,8 @@
 package main
 
 import (
-	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/alecthomas/kingpin/v2"
@@ -17,7 +17,7 @@ import (
 var (
 	credentialPath = kingpin.Flag("credential", "GoogleAPIのクレデンシャルファイル").Required().String()
 	installDir     = kingpin.Flag("dir", "インストールディレクトリ").Required().String()
-	searchMinute   = kingpin.Flag("minute", "会議開始の何分前に起動するか").Default(string(lib.DefaultSearchMinutes)).Int()
+	searchMinute   = kingpin.Flag("minute", "会議開始の何分前に起動するか").Default(strconv.Itoa(lib.DefaultSearchMinutes)).Int()
 	browserApp     = kingpin.Flag("browser", "ブラウザアプリケーション").Default(lib.DefaultBrowserApp).String()
 )
 
@@ -25,6 +25,10 @@ func main() {
 	kingpin.Parse()
 	config := lib.NewConfig(*credentialPath, *installDir, *searchMinute, *browserApp)
 	runner := lib.NewRunner(config)
+	logger := lib.GetLogger()
+	logger.Info("開始")
+	logger.Info(config.String())
+	logger.Info("毎時 13,14,28,29,43,44,58,59 分にカレンダーチェック")
 	for {
 		// 現在時刻を取得
 		now := time.Now()
@@ -32,12 +36,11 @@ func main() {
 		if now.Minute()%15 == 14 || now.Minute()%15 == 13 {
 			err := runner.Run()
 			if err != nil {
-				log.Printf("エラー発生、異常終了: %v", err)
+				logger.Error("Error: %v", err)
 				os.Exit(1)
 			}
-		} else {
-			log.Println("毎時 13,14,28,29,43,44,58,59分のときにのみ実行。1分待つ")
 		}
+		logger.Debug("wait 1 minutes")
 		time.Sleep(60 * time.Second)
 	}
 }

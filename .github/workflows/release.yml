@@ -1,0 +1,62 @@
+name: release
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go 1.21
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - uses: actions/checkout@v3
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: SetTag
+        id: set_tag
+        run: echo "tag=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: build-package
+        env:
+          VERSION: ${{ env.tag }}
+        run: |
+          bash build.sh ${{ env.tag }}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GT }}
+          VERSION: ${{ env.tag }}
+        with:
+          tag_name: ${{ env.tag }}
+          release_name: Release ${{ env.tag }}
+          draft: false
+          prerelease: false
+
+      - name: Upload ARM64 Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GT }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/gcal-run_darwin_arm64_${{ env.tag }}.tar.gz
+          asset_name: gcal-run_darwin_arm64_${{ env.tag }}.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload AMD64 Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GT }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/gcal-run_darwin_amd64_${{ env.tag }}.tar.gz
+          asset_name: gcal-run_darwin_amd64_${{ env.tag }}.tar.gz
+          asset_content_type: application/gzip

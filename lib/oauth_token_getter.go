@@ -27,17 +27,19 @@ func NewOAuthTokenGetter() *OAuthTokenGetter {
 }
 
 func (o *OAuthTokenGetter) saveToken(file string, token *oauth2.Token) error {
+	logger := GetLogger()
 	f, err := os.Create(file)
 	if err != nil {
 		return fmt.Errorf("failed to create token file %v", err)
 	}
 	defer f.Close()
 	gob.NewEncoder(f).Encode(token)
-	log.Printf("OAuthトークンをファイルに保存。トークンファイル=%s", file)
+	logger.Info("OAuthトークンをファイルに保存。トークンファイル=%s", file)
 	return nil
 }
 
 func (o *OAuthTokenGetter) getTokenFromWeb(credentialPath string, browserApp string) (*oauth2.Token, error) {
+	logger := GetLogger()
 	ctx := context.Background()
 	b, err := os.ReadFile(credentialPath)
 	if err != nil {
@@ -56,7 +58,7 @@ func (o *OAuthTokenGetter) getTokenFromWeb(credentialPath string, browserApp str
 			return
 		}
 		if req.FormValue("state") != randState {
-			log.Printf("State doesn't match: req = %#v", req)
+			logger.Error("State doesn't match: req = %#v", req)
 			http.Error(rw, "", 500)
 			return
 		}
@@ -66,7 +68,7 @@ func (o *OAuthTokenGetter) getTokenFromWeb(credentialPath string, browserApp str
 			ch <- code
 			return
 		}
-		log.Printf("no code")
+		logger.Error("no code")
 		http.Error(rw, "", 500)
 	}))
 	defer ts.Close()
@@ -74,7 +76,7 @@ func (o *OAuthTokenGetter) getTokenFromWeb(credentialPath string, browserApp str
 	config.RedirectURL = ts.URL
 	authURL := config.AuthCodeURL(randState)
 	go OpenUrl(browserApp, authURL)
-	log.Printf("ブラウザを使ってこのアプリケーションを認証してください。URL=%s", authURL)
+	fmt.Printf("ブラウザを使ってこのアプリケーションを認証してください。URL = %s", authURL)
 	code := <-ch
 	token, err := config.Exchange(ctx, code)
 	if err != nil {

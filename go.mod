@@ -1,6 +1,6 @@
 module github.com/fetaro/gcal_forcerun_go
 
-go 1.19
+go 1.21
 
 require (
 	github.com/alecthomas/kingpin/v2 v2.4.0

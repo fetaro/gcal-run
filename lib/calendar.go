@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -22,13 +21,14 @@ type GCal struct {
 	Config *Config
 }
 
-func NewCalender(config *Config) *GCal {
+func NewCalendar(config *Config) *GCal {
 	return &GCal{
 		Config: config,
 	}
 }
 
-func (g *GCal) GetCalenderEvents(basisTime time.Time) (*calendar.Events, error) {
+func (g *GCal) GetCalendarEvents(basisTime time.Time) (*calendar.Events, error) {
+	logger := GetLogger()
 	ctx := context.Background()
 	b, err := os.ReadFile(g.Config.CredentialPath)
 	if err != nil {
@@ -58,12 +58,12 @@ func (g *GCal) GetCalenderEvents(basisTime time.Time) (*calendar.Events, error) 
 		return nil, fmt.Errorf("fail to make CalendarService: %v", err)
 	}
 
-	log.Printf("Googleカレンダーから、%s以降のイベントを最大%d件取得\n", basisTime.Format(time.RFC3339), ApiMaxResult)
+	logger.Debug("get up to %d calendar events after %s", ApiMaxResult, basisTime.Format(time.RFC3339))
 	events, err := srv.Events.List("primary").ShowDeleted(false).
 		SingleEvents(true).TimeMin(basisTime.Format(time.RFC3339)).MaxResults(ApiMaxResult).OrderBy("startTime").Do()
 	if err != nil {
 		return nil, fmt.Errorf("fail to list events: %v", err)
 	}
-	log.Printf("%d件のイベントを取得\n", len(events.Items))
+	logger.Info("カレンダーから%d件のイベントを取得", len(events.Items))
 	return events, nil
 }

@@ -2,7 +2,6 @@ package lib
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
 	"time"
 )
@@ -18,33 +17,37 @@ func NewRunner(config *Config) *Runner {
 }
 
 func (r *Runner) Run() error {
+	logger := GetLogger()
 	eventIDStore := NewEventIDStore(r.Config.EventIDStorePath)
-	calender := NewCalender(r.Config)
-	events, err := calender.GetCalenderEvents(time.Now())
+	calendar := NewCalendar(r.Config)
+	events, err := calendar.GetCalendarEvents(time.Now())
 	if err != nil {
-		return fmt.Errorf("failed to get calender events: %v", err)
+		return fmt.Errorf("failed to get calendar events: %v", err)
 	}
 	if len(events.Items) == 0 {
-		log.Println("カレンダーにイベントがないため、何もしない")
+		logger.Info("no calendar events")
 		return nil
 	}
 	for _, item := range events.Items {
 		event, err := NewEvent(item)
 		if err != nil {
+			logger.Info("何もしない \"%s\" はオンライン会議ではない", item.Summary)
 			continue
 		}
 		timeToStartSec := event.TimeToStartSec()
 		if timeToStartSec < 0 {
-			log.Printf("「%s」は開始時間を過ぎている\n", event)
+			// 開始時刻を過ぎている。現在時刻より後のイベントを取っているため、基本的にはありえない
+			logger.Info("何もしない \"%s\" は既に%d分前に開始している", event, -timeToStartSec/60)
+			continue
 		} else if timeToStartSec < r.Config.SearchMinutes*60 {
 			eventAlreadyRun, err := eventIDStore.IsInclude(event.ID)
 			if err != nil {
 				return fmt.Errorf("failed to load event id list from eventIDStore: %v", err)
 			}
 			if eventAlreadyRun {
-				log.Printf("「%s」は%d分後に開始だが、既に開始済みなので、何もしない\n", event, timeToStartSec/60)
+				logger.Info("何もしない \"%s\" は既に開始済み", event)
 			} else {
-				log.Printf("「%s」は%d分後に開始するため、%sのブラウザで会議を開始\n", event, timeToStartSec/60, r.Config.BrowserApp)
+				logger.Info("開始　　　 \"%s\" は%d分後に開始", event, timeToStartSec/60)
 				err := exec.Command("open", "-a", r.Config.BrowserApp, event.URL).Run()
 				if err != nil {
 					return fmt.Errorf("failed to open event url: %v", err)
@@ -55,7 +58,7 @@ func (r *Runner) Run() error {
 				}
 			}
 		} else {
-			log.Printf("「%s」は%d分後に開始なので、何もしない\n", event, timeToStartSec/60)
+			logger.Info("何もしない \"%s\" は%d分後に開始", event, timeToStartSec/60)
 		}
 	}
 	return nil

@@ -1,9 +1,22 @@
-TAG=$(git describe --tags)
-TAG="0.0.0"
-DIR="gcal_run-${TAG}"
-rm -rf dist/${DIR}  && \
-mkdir dist/${DIR} && \
-cp README.md dist/${DIR}/README.md && \
-go build -o dist/${DIR}/gcal_run cmd/gcal_run/gcal_run.go && \
-go build -o dist/${DIR}/installer cmd/installer/installer.go && \
-(cd dist && tar zcvf ${DIR}.tar.gz ${DIR})
+#!/bin/bash
+set -e
+set -x
+
+# 引数でバージョンを受け取る
+if [ $# -ne 1 ]; then
+    echo "バージョンを指定してください"
+    exit 1
+fi
+VERSION=$1
+ARCH_LIST=("amd64" "arm64")
+GOOS="darwin"
+for ARCH in "${ARCH_LIST[@]}" ; do
+    echo "[ ${ARCH} ]"
+    NAME="gcal-run_${GOOS}_${ARCH}_${VERSION}"
+    mkdir -p "dist/${NAME}"
+    cp README.md "dist/${NAME}/README.md"
+    GCO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} go build -o "dist/${NAME}/gcal_run"  cmd/gcal_run/gcal_run.go
+    GCO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} go build -o "dist/${NAME}/installer" cmd/installer/installer.go
+    (cd dist && tar zcvf ${NAME}.tar.gz ${NAME})
+done
+

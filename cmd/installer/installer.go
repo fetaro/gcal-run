@@ -62,7 +62,7 @@ func main() {
 			browserApp = lib.DefaultBrowserApp
 			break
 		}
-		if !os.IsNotExist(err) {
+		if os.IsNotExist(err) {
 			fmt.Println("ブラウザアプリケーションが存在しません。再度入力してください")
 		} else {
 			break
