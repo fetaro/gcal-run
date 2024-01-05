@@ -1,0 +1,25 @@
+name: build package
+on:
+  pull_request:
+
+jobs:
+  build-package:
+    name: build package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go 1.19
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.19'
+
+      - uses: actions/checkout@v2
+
+      - name: build-package
+        run: |
+          build.sh
+
+      - name: upload-package
+        uses: actions/upload-artifact@v4
+        with:
+          name: gcal_run.tar.gz
+          path: dist/gcal_run-*.tar.gz
