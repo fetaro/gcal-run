@@ -17,6 +17,7 @@ for ARCH in "${ARCH_LIST[@]}" ; do
     cp README.md "dist/${NAME}/README.md"
     GCO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} go build -o "dist/${NAME}/gcal_run"  cmd/gcal_run/gcal_run.go
     GCO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} go build -o "dist/${NAME}/installer" cmd/installer/installer.go
+    echo ${VERSION} > "dist/${NAME}/VERSION"
     (cd dist && tar zcvf ${NAME}.tar.gz ${NAME})
 done
 
