@@ -1,0 +1,27 @@
+name: unit_test
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  unit_test:
+    name: unit_test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go 1.21
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - uses: actions/checkout@v3
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: unit_test
+        run: |
+          go test -v ./lib/... ./cmd/...

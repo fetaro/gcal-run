@@ -19,40 +19,40 @@ func TestParseGoogleMeetEventUrl(t *testing.T) {
 			},
 		},
 	}
-	meetingApp, url := NewURLParser().Parse(event)
+	url, err := NewURLParser().Parse(event)
 
-	assert.Equal(t, meetingApp, "Meet")
-	assert.Equal(t, url, "https://meet.google.com/xxx")
+	assert.NoError(t, err)
+	assert.Equal(t, "https://meet.google.com/xxx", url)
 }
 
 func TestParseZoomEventUrlWhenLocationHasUrl(t *testing.T) {
 	event := &calendar.Event{
 		Location: "https://zoom.us/j/xxx",
 	}
-	meetingApp, url := NewURLParser().Parse(event)
+	url, err := NewURLParser().Parse(event)
 
-	assert.Equal(t, meetingApp, "Zoom")
-	assert.Equal(t, url, "https://zoom.us/j/xxx")
+	assert.NoError(t, err)
+	assert.Equal(t, "https://zoom.us/j/xxx", url)
 }
 
 func TestParseZoomEventUrlWhenDescriptionHasUrl(t *testing.T) {
 	event := &calendar.Event{
 		Description: "<a href=\"https://zoom.us/j/12345?pwd=xxx\"><u>https://zoom.us/j/12345?pwd=xxx</u></a>",
 	}
-	meetingApp, url := NewURLParser().Parse(event)
+	url, err := NewURLParser().Parse(event)
 
-	assert.Equal(t, meetingApp, "Zoom")
-	assert.Equal(t, url, "https://zoom.us/j/12345?pwd=xxx")
+	assert.NoError(t, err)
+	assert.Equal(t, "https://zoom.us/j/12345?pwd=xxx", url)
 }
 
 func TestParseZoomEventUrl(t *testing.T) {
 	event := &calendar.Event{
 		Description: `──────────<br><br>さんがあなたを予約されたZoomミーティングに招待しています。<br><br>Zoomミーティングに参加する<br><a href="https://zoom.us/j/223344?pwd=yyy">https://zoom.us/j/223344?pwd=yyy</a><br><br>ミーティングID: 123 4567 7890<br>パスコード: 123456<br><br><br>──────────`,
 	}
-	meetingApp, url := NewURLParser().Parse(event)
+	url, err := NewURLParser().Parse(event)
 
-	assert.Equal(t, meetingApp, "Zoom")
-	assert.Equal(t, url, "https://zoom.us/j/223344?pwd=yyy")
+	assert.NoError(t, err)
+	assert.Equal(t, "https://zoom.us/j/223344?pwd=yyy", url)
 }
 
 func TestParseTeamsEventUrl(t *testing.T) {
@@ -73,8 +73,8 @@ Teams
 ________________________________________________________________________________
 `,
 	}
-	meetingApp, url := NewURLParser().Parse(event)
+	url, err := NewURLParser().Parse(event)
 
-	assert.Equal(t, meetingApp, "Teams")
-	assert.Equal(t, url, "https://teams.microsoft.com/l/meetup-join/aaaaaaa")
+	assert.NoError(t, err)
+	assert.Equal(t, "https://teams.microsoft.com/l/meetup-join/aaaaaaa", url)
 }

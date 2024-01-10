@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -9,11 +8,10 @@ import (
 )
 
 type Event struct {
-	ID         string
-	MeetingApp string
-	StartAt    time.Time
-	Summary    string
-	URL        string
+	ID      string
+	StartAt time.Time
+	Summary string
+	URL     string
 }
 
 func NewEvent(event *calendar.Event) (*Event, error) {
@@ -24,18 +22,16 @@ func NewEvent(event *calendar.Event) (*Event, error) {
 		// 終日イベントなど、開始日時がない場合は、RFC3339の形式になっていない
 		return nil, fmt.Errorf("faild to parse event.Start.Datetime = %s. %w", event.Start.DateTime, err)
 	}
-	var meetingApp string
-	meetingApp, url := NewURLParser().Parse(event)
+	url, err := NewURLParser().Parse(event)
 	if url != "" {
 		return &Event{
-			ID:         event.Id,
-			MeetingApp: meetingApp,
-			StartAt:    startAt,
-			Summary:    event.Summary,
-			URL:        url,
+			ID:      event.Id,
+			StartAt: startAt,
+			Summary: event.Summary,
+			URL:     url,
 		}, nil
 	}
-	return nil, errors.New("URL is empty")
+	return nil, err
 }
 
 func (e *Event) TimeToStartSec() int {

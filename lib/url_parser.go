@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -14,51 +15,33 @@ func NewURLParser() *URLParser {
 	return &URLParser{}
 }
 
-func (p *URLParser) Parse(event *calendar.Event) (string, string) {
-	url := parseZoomUrl(event)
-	if url != "" {
-		return "Zoom", url
-	}
-	url = parseMeetUrl(event)
-	if url != "" {
-		return "Meet", url
-	}
-	url = parseTeamsUrl(event)
-	if url != "" {
-		return "Teams", url
-	}
-	return "Other", ""
-}
-
-func parseMeetUrl(event *calendar.Event) string {
-	if event.ConferenceData == nil {
-		return ""
-	}
-	for _, entryPoint := range event.ConferenceData.EntryPoints {
-		if entryPoint.EntryPointType == "video" {
-			return entryPoint.Uri
+func (p *URLParser) Parse(event *calendar.Event) (string, error) {
+	// EntryPointTypeがvideoなら採用。meetはこれでマッチする
+	if event.ConferenceData != nil && event.ConferenceData.EntryPoints != nil {
+		for _, entryPoint := range event.ConferenceData.EntryPoints {
+			if entryPoint.EntryPointType == "video" {
+				return entryPoint.Uri, nil
+			}
 		}
 	}
-	return ""
-}
-
-func parseZoomUrl(event *calendar.Event) string {
-	if event.Location != "" && strings.Contains(event.Location, "zoom.us") {
-		return event.Location
+	// LocationにURLが含まれている場合は採用
+	urlPrefixList := []string{"https://zoom.us", "https://teams.microsoft.com/l/meetup-join", "https://meet.google.com"}
+	for _, urlPrefix := range urlPrefixList {
+		if strings.Contains(event.Location, urlPrefix) {
+			return event.Location, nil
+		}
+		// DescriptionにURLが含まれている場合は採用
+		descriptionRegExpList := []string{
+			"<a href=\"(" + urlPrefix + ".*?)\">.*",
+			"<(" + urlPrefix + ".*)>",
+		}
+		for _, descriptionRegExp := range descriptionRegExpList {
+			tagMatcher := regexp.MustCompile(descriptionRegExp)
+			if tagMatcher.MatchString(event.Description) {
+				matched := tagMatcher.FindStringSubmatch(event.Description)
+				return matched[1], nil
+			}
+		}
 	}
-	tagMatcher := regexp.MustCompile(`<a href=\"(https://zoom.us/.*?)\">.*`)
-	if tagMatcher.MatchString(event.Description) {
-		matched := tagMatcher.FindStringSubmatch(event.Description)
-		return matched[1]
-	}
-	return ""
-}
-
-func parseTeamsUrl(event *calendar.Event) string {
-	tagMatcher := regexp.MustCompile(`<(https://teams.microsoft.com/l/meetup-join.*)>`)
-	if tagMatcher.MatchString(event.Description) {
-		matched := tagMatcher.FindStringSubmatch(event.Description)
-		return matched[1]
-	}
-	return ""
+	return "", fmt.Errorf("event is not online meeting")
 }

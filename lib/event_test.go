@@ -34,7 +34,6 @@ func TestNewEvent(t *testing.T) {
 	assert.Equal(t, actual.Summary, "test")
 	assert.Equal(t, actual.URL, "https://meet.google.com/xxx")
 	assert.True(t, actual.TimeToStartSec() < 0)
-	assert.Equal(t, actual.MeetingApp, "Meet")
 	assert.Equal(t, fmt.Sprintf("%s", actual), "2023-12-28 22:05 test")
 }
 

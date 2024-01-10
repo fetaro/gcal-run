@@ -11,7 +11,9 @@ import (
 func TestGCalGetCalendarEvents(t *testing.T) {
 	config := NewConfig("/tmp/gcal_run_test/credential.json", "/tmp/gcal_run_test", 30, "/Applications/Google Chrome.app")
 	err := config.IsValid()
-	assert.NoError(t, err)
+	if err != nil {
+		t.Skip("Skip this test because credential.json and oauth_token is not found")
+	}
 	dateStr := "2023-12-30T11:15:00+09:00"
 	// Time.time型に変換する
 	basisTime, err := time.Parse(time.RFC3339, dateStr)
