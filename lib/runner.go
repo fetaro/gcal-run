@@ -39,7 +39,7 @@ func (r *Runner) Run() error {
 			// 開始時刻を過ぎている。現在時刻より後のイベントを取っているため、基本的にはありえない
 			logger.Info("何もしない \"%s\" は既に%d分前に開始している", event, -timeToStartSec/60)
 			continue
-		} else if timeToStartSec < r.Config.SearchMinutes*60 {
+		} else if timeToStartSec < r.Config.MinutesAgo*60 {
 			eventAlreadyRun, err := eventIDStore.IsInclude(event.ID)
 			if err != nil {
 				return fmt.Errorf("failed to load event id list from eventIDStore: %v", err)

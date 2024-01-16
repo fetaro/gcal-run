@@ -7,14 +7,14 @@ import (
 )
 
 const (
-	DefaultBrowserApp    = "/Applications/Google Chrome.app"
-	DefaultSearchMinutes = 2
+	DefaultBrowserApp = "/Applications/Google Chrome.app"
+	DefaultMinutesAgo = 2
 )
 
 type Config struct {
 	CredentialPath   string
 	InstallDir       string
-	SearchMinutes    int
+	MinutesAgo       int
 	BrowserApp       string
 	BinPath          string
 	LogPath          string
@@ -23,11 +23,11 @@ type Config struct {
 	PlistPath        string
 }
 
-func NewConfig(credentialPath string, installDir string, searchMinutes int, browserApp string) *Config {
+func NewConfig(credentialPath string, installDir string, minutesAgo int, browserApp string) *Config {
 	return &Config{
 		CredentialPath:   credentialPath,
 		InstallDir:       installDir,
-		SearchMinutes:    searchMinutes,
+		MinutesAgo:       minutesAgo,
 		BrowserApp:       browserApp,
 		BinPath:          path.Join(installDir, "gcal_run"),
 		LogPath:          path.Join(installDir, "gcal_run.log"),
@@ -48,7 +48,7 @@ func (c *Config) IsValid() error {
 }
 
 func (c *Config) String() string {
-	return fmt.Sprintf(`設定値:クレデンシャルファイルパス=%s,会議起動時間=%d 分前,ブラウザアプリケーション=%s`, c.CredentialPath, c.SearchMinutes, c.BrowserApp)
+	return fmt.Sprintf(`設定値:クレデンシャルファイルパス=%s,会議起動時間=%d 分前,ブラウザアプリケーション=%s`, c.CredentialPath, c.MinutesAgo, c.BrowserApp)
 }
 
 func (c *Config) InstructString() string {
@@ -69,7 +69,7 @@ $ launchctl load %s
 実行ログは以下の場所に出力されます。
 %s
 `,
-		c.CredentialPath, c.BrowserApp, c.SearchMinutes,
+		c.CredentialPath, c.BrowserApp, c.MinutesAgo,
 		c.InstallDir, c.PlistPath,
 		c.PlistPath, c.LogPath)
 }
@@ -108,5 +108,5 @@ func (c *Config) GeneratePlistStr() string {
 	<string>%s</string>
 </dict>
 </plist>
-`, c.BinPath, c.CredentialPath, c.InstallDir, c.SearchMinutes, c.BrowserApp, c.LogPath, c.LogPath)
+`, c.BinPath, c.CredentialPath, c.InstallDir, c.MinutesAgo, c.BrowserApp, c.LogPath, c.LogPath)
 }
