@@ -53,7 +53,6 @@ func main() {
 
 	var browserApp string
 	for {
-		// 標準入力からsearchMinutesを取得
 		fmt.Printf("ブラウザアプリケーションのパスを指定してください\nデフォルトは「%s」です。デフォルトで良い場合は何も入力せずにEnterを押してください\n> ", lib.DefaultBrowserApp)
 		scanner.Scan()
 		browserApp = scanner.Text()
@@ -69,19 +68,18 @@ func main() {
 		}
 	}
 
-	var searchMinuteStr string
-	var searchMinute int
+	var minutesAgoStr string
+	var minutesAgo int
 	for {
-		// 標準入力からsearchMinutesを取得
-		fmt.Printf("会議の何分前に起動するか指定してください\nデフォルトは「%d分」です。デフォルトで良い場合は何も入力せずにEnterを押してください\n> ", lib.DefaultSearchMinutes)
+		fmt.Printf("会議の何分前に起動するか指定してください\nデフォルトは「%d分」です。デフォルトで良い場合は何も入力せずにEnterを押してください\n> ", lib.DefaultMinutesAgo)
 		scanner.Scan()
-		searchMinuteStr = scanner.Text()
-		_, err := os.Stat(searchMinuteStr)
-		if searchMinuteStr == "" {
-			searchMinute = lib.DefaultSearchMinutes
+		minutesAgoStr = scanner.Text()
+		_, err := os.Stat(minutesAgoStr)
+		if minutesAgoStr == "" {
+			minutesAgo = lib.DefaultMinutesAgo
 			break
 		}
-		searchMinute, err = strconv.Atoi(searchMinuteStr)
+		minutesAgo, err = strconv.Atoi(minutesAgoStr)
 		if err != nil {
 			fmt.Println("数値を入力してください")
 			continue
@@ -91,7 +89,7 @@ func main() {
 	}
 
 	installer := lib.NewInstaller()
-	config := lib.NewConfig(credentialPath, installDir, searchMinute, browserApp)
+	config := lib.NewConfig(credentialPath, installDir, minutesAgo, browserApp)
 	err = installer.Install(config)
 	if err != nil {
 		os.Exit(1)

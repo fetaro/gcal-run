@@ -19,6 +19,10 @@ jobs:
           ref: master
           fetch-depth: 0
 
+      - name: unit_test
+        run: |
+          go test -v ./lib/... ./cmd/...
+
       - name: SetTag
         id: set_tag
         run: echo "tag=${GITHUB_REF##*/}" >> $GITHUB_ENV

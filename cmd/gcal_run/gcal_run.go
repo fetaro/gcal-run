@@ -17,23 +17,22 @@ import (
 var (
 	credentialPath = kingpin.Flag("credential", "GoogleAPIのクレデンシャルファイル").Required().String()
 	installDir     = kingpin.Flag("dir", "インストールディレクトリ").Required().String()
-	searchMinute   = kingpin.Flag("minute", "会議開始の何分前に起動するか").Default(strconv.Itoa(lib.DefaultSearchMinutes)).Int()
+	minuteAgo      = kingpin.Flag("minute", "会議開始の何分前に起動するか").Default(strconv.Itoa(lib.DefaultMinutesAgo)).Int()
 	browserApp     = kingpin.Flag("browser", "ブラウザアプリケーション").Default(lib.DefaultBrowserApp).String()
 )
 
 func main() {
 	kingpin.Parse()
-	config := lib.NewConfig(*credentialPath, *installDir, *searchMinute, *browserApp)
+	config := lib.NewConfig(*credentialPath, *installDir, *minuteAgo, *browserApp)
 	runner := lib.NewRunner(config)
+	runTimingCalculator := lib.NewRunTimingCalculator(*minuteAgo)
 	logger := lib.GetLogger()
 	logger.Info("開始")
 	logger.Info(config.String())
-	logger.Info("毎時 13,14,28,29,43,44,58,59 分にカレンダーチェック")
 	for {
 		// 現在時刻を取得
 		now := time.Now()
-		// 分が13,14,28,29,43,44,58,59のときに実行
-		if now.Minute()%15 == 14 || now.Minute()%15 == 13 {
+		if runTimingCalculator.IsRunTiming(now.Minute()) {
 			err := runner.Run()
 			if err != nil {
 				logger.Error("Error: %v", err)
