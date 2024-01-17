@@ -33,7 +33,7 @@ func (p *URLParser) Parse(event *calendar.Event) (string, error) {
 		// DescriptionにURLが含まれている場合は採用
 		descriptionRegExpList := []string{
 			"<a href=\"(" + urlPrefix + ".*?)\">.*",
-			"<(" + urlPrefix + ".*)>",
+			"(" + urlPrefix + `[\.0-9a-zA-Z-_?/=%&@]+` + ")",
 		}
 		for _, descriptionRegExp := range descriptionRegExpList {
 			tagMatcher := regexp.MustCompile(descriptionRegExp)
