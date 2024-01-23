@@ -38,7 +38,8 @@ Web会議の開始時間を忘れがちな人にオススメです。
 
 ### 1. GoogleAPIのクレデンシャルファイルの取得
 
-[このマニュアル](https://developers.google.com/calendar/api/guides/overview?hl=ja)に従いGoogle Calendar APIのクレデンシャルファイルを取得してください。
+[このマニュアル](https://github.com/fetaro/gcal-run/wiki/how_to_get_google_calendar_api_credential_file)に従いGoogle Calendar APIのクレデンシャルファイルを取得してください。
+
 クレデンシャルファイルはJSON形式です。
 
 ### 2. ツールのインストール
