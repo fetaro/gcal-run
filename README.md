@@ -69,7 +69,7 @@ cd
 
 以下のコマンドでバックグラウンドプロセスを起動してください。
 ```text
-$ launchctl load ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
+launchctl load ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
 ```
 
 ログは `(インストールディレクトリ)/gcal_run.log` に出力されます。
@@ -78,18 +78,18 @@ $ launchctl load ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
 
 バックグラウンドプロセスを終了する場合は以下のコマンドを実行してください。
 ```text
-$ launchctl unload ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
+launchctl unload ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
 ```
 
 ### アンインストール
 
 ```text
 # 停止
-$ launchctl unload ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
+launchctl unload ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
 
 # 削除
-$ rm ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
-$ rm -rf (インストールディレクトリ)
+rm ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
+rm -rf (インストールディレクトリ)
 ```
 
 ### 設定の変更
