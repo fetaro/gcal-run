@@ -15,10 +15,10 @@ import (
 )
 
 var (
-	credentialPath = kingpin.Flag("credential", "GoogleAPIのクレデンシャルファイル").Required().String()
-	installDir     = kingpin.Flag("dir", "インストールディレクトリ").Required().String()
+	credentialPath = kingpin.Flag("credential", "GoogleAPIのクレデンシャルファイル").Required().ExistingFile()
+	installDir     = kingpin.Flag("dir", "インストールディレクトリ").Required().ExistingDir()
 	minuteAgo      = kingpin.Flag("minute", "会議開始の何分前に起動するか").Default(strconv.Itoa(lib.DefaultMinutesAgo)).Int()
-	browserApp     = kingpin.Flag("browser", "ブラウザアプリケーション").Default(lib.DefaultBrowserApp).String()
+	browserApp     = kingpin.Flag("browser", "ブラウザアプリケーション").Default(lib.DefaultBrowserApp).ExistingDir()
 )
 
 func main() {
