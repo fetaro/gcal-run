@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"testing"
@@ -13,10 +14,12 @@ import (
 func TestInstaller_Install(t *testing.T) {
 	dirName := time.Now().Format("20060102150405")
 	installDir := path.Join(os.TempDir(), dirName)
-	config := NewConfig("/tmp/gcal_run_test/credential.json", installDir, 2, "/Applications/Google Chrome.app")
+	os.Mkdir(installDir, 0755)
+	credPath := "/tmp/gcal_run_test/credential.json"
+	config := NewConfig(credPath, installDir, 2, "/Applications/Google Chrome.app")
 	err := config.IsValid()
 	if err != nil {
-		t.Skip("Skip this test because credential.json and oauth_token is not found")
+		t.Skip(fmt.Sprintf("Skip this test because %v", err))
 	}
 	installer := NewInstaller()
 	err = installer.Install(config)

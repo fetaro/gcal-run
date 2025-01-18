@@ -4,21 +4,22 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"strconv"
 
-	"github.com/alecthomas/kingpin/v2"
 	"github.com/fetaro/gcal_forcerun_go/lib"
 )
 
-var (
-	credential = kingpin.Arg("credential", "GoogleAPIのクレデンシャルファイル").Required().String()
-)
-
 func main() {
-	kingpin.Parse()
-	credentialPath, err := filepath.Abs(*credential)
+	// 引数の数をチェック
+	if len(os.Args) != 2 {
+		fmt.Println("第一引数にクレデンシャルファイルのパスを指定してください")
+		fmt.Println("使い方 : installer /path/to/credential.json")
+		os.Exit(1)
+	}
+	// 第一引数を取得
+	credential := os.Args[1]
+	credentialPath, err := filepath.Abs(credential)
 	if err != nil {
 		fmt.Printf("クレデンシャルファイルのフルパスの取得に失敗しました: %v\n", err)
 		os.Exit(1)
@@ -28,15 +29,15 @@ func main() {
 		fmt.Println("クレデンシャルファイルを読み取れません")
 		os.Exit(1)
 	}
+	fmt.Println("クレデンシャルファイルを読み取りました. ファイルパス: ", credentialPath)
 
 	scanner := bufio.NewScanner(os.Stdin) // 標準入力を受け付けるスキャナ
 
-	DefaultAppHome := path.Join(os.Getenv("HOME"), ".gcal_run")
-	fmt.Printf("インストール先ディレクトリを指定してください\nデフォルトは「%s」です。デフォルトで良い場合は何も入力せずにEnterを押してください\n> ", DefaultAppHome)
+	fmt.Printf("インストール先ディレクトリを指定してください\nデフォルトは「%s」です。デフォルトで良い場合は何も入力せずにEnterを押してください\n> ", lib.DefaultInstallDir())
 	scanner.Scan()
 	installDir := scanner.Text()
 	if installDir == "" {
-		installDir = DefaultAppHome
+		installDir = lib.DefaultInstallDir()
 	}
 	// installDirが存在しない場合は作る
 	if _, err := os.Stat(installDir); os.IsNotExist(err) {
@@ -47,8 +48,28 @@ func main() {
 		}
 		fmt.Printf("ディレクトリを作成しました: %s\n", installDir)
 	} else {
-		fmt.Printf("ディレクトリが既に存在します: %s\n", installDir)
-		os.Exit(1)
+		fmt.Printf("ディレクトリが既に存在します。: %s\n", installDir)
+		fmt.Printf("中身を空にして、インストールしますか？ (y/n) > ")
+		scanner.Scan()
+		yOrN := scanner.Text()
+		if yOrN == "y" {
+			// installDirの中身を空にする
+			err := os.RemoveAll(installDir)
+			if err != nil {
+				fmt.Printf("ディレクトリを空にできませんでした: %v\n", err)
+				os.Exit(1)
+			} else {
+				err := os.MkdirAll(installDir, 0755)
+				if err != nil {
+					fmt.Printf("ディレクトリを作成できませんでした: %v\n", err)
+					os.Exit(1)
+				}
+				fmt.Printf("ディレクトリを空にして再作成しました: %s\n", installDir)
+			}
+		} else {
+			fmt.Println("インストールを中止します")
+			os.Exit(1)
+		}
 	}
 
 	var browserApp string
@@ -92,6 +113,7 @@ func main() {
 	config := lib.NewConfig(credentialPath, installDir, minutesAgo, browserApp)
 	err = installer.Install(config)
 	if err != nil {
+		fmt.Printf("インストールに失敗しました: %v\n", err)
 		os.Exit(1)
 	}
 }

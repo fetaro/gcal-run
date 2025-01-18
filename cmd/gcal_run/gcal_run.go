@@ -16,7 +16,7 @@ import (
 
 var (
 	credentialPath = kingpin.Flag("credential", "GoogleAPIのクレデンシャルファイル").Required().ExistingFile()
-	installDir     = kingpin.Flag("dir", "インストールディレクトリ").Required().ExistingDir()
+	installDir     = kingpin.Flag("dir", "インストールディレクトリ").Default(lib.DefaultInstallDir()).ExistingDir()
 	minuteAgo      = kingpin.Flag("minute", "会議開始の何分前に起動するか").Default(strconv.Itoa(lib.DefaultMinutesAgo)).Int()
 	browserApp     = kingpin.Flag("browser", "ブラウザアプリケーション").Default(lib.DefaultBrowserApp).ExistingDir()
 )
