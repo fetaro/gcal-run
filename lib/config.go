@@ -11,6 +11,10 @@ const (
 	DefaultMinutesAgo = 2
 )
 
+func DefaultInstallDir() string {
+	return path.Join(os.Getenv("HOME"), ".gcal_run")
+}
+
 type Config struct {
 	CredentialPath   string
 	InstallDir       string

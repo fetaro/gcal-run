@@ -62,22 +62,7 @@ cd
 
 プロンプトの指示に従ってインストールしてください。手動で実行する場合はインストールディレクトリの指定が必要であるため、忘れないように記録しておいてください。
 
-### 手動で実行して使う場合
-
-#### 起動
-
-以下のコマンドでプログラムを起動してください。このプログラムが起動している間は自動で会議が始まります
-```text
-./gcal_run --dir (インストールディレクトリ) --credential (クレデンシャルファイル)
-```
-
-ここで、「アプリが悪質なソフトウェアであるかどうかAppleで確認できない」と表示された場合は、
-アップルメニュー  ＞「システム設定」と選択し、サイドバーで「プライバシーとセキュリティ」を選択
-`gcal_runは発行元が不明なため、使用をブロックしました` というメッセージの箇所を許可してください。
-
-#### 停止
-
-ctrl+cをおしてプログラムを停止してください。
+## 実行方法
 
 ### 常駐プログラムとして使う場合
 
@@ -92,7 +77,23 @@ launchctl load ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
 アップルメニュー  ＞「システム設定」と選択し、サイドバーで「プライバシーとセキュリティ」を選択
 `gcal_runは発行元が不明なため、使用をブロックしました` というメッセージの箇所を許可してください。
 
-ログは `(インストールディレクトリ)/gcal_run.log` に出力されます。
+#### プロセスが動いていることの確認
+プロセスの確認
+```
+ps -ef | grep gcal | grep -v grep
+# 行が表示されたらプロセスは起動している
+```
+
+もしくは、プロセスの確認
+```
+launchctl list | grep gcal
+# 一番左の文字が「-」ではなく、数字が表示されている場合は、プロセスが起動している
+```
+
+#### ログの確認
+```
+tail -f ${HOME}/.gcal_run/gcal_run.log
+```
 
 #### 停止
 
@@ -107,15 +108,37 @@ launchctl unload ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
 # 停止
 launchctl unload ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
 
-# 削除
+# デーモンプロセスファイルの削除
 rm ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
-rm -rf (インストールディレクトリ)
+
+# インストールディレクトリの削除(インストールディレクトリを変更している場合は引数を変えてください)
+rm -rf ${HOME}/.gcal_run/
 ```
 
 ### 設定の変更
 バックグラウンドプロセスを停止した後、`${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist`を編集し、再度起動してください。
 
 
+### 手動で実行して使う場合
 
+#### 起動
+
+以下のコマンドでプログラムを起動してください。このプログラムが起動している間は自動で会議が始まります
+```text
+cd ${HOME}/.gcal_run
+./gcal_run --credential (クレデンシャルファイル)
+```
+
+インストールティレクやオプションをデフォルトから変更している場合は適宜オプションを指定してください
+```text
+./gcal_run --credential (クレデンシャルファイル) \
+           --dir (インストールディレクトリ) \
+           --minute (何分前に起動するか) \
+           --browser (ブラウザ)
+```
+
+#### 停止
+
+ctrl+cをおしてプログラムを停止してください。
 
 

@@ -31,13 +31,13 @@ func (r *Runner) Run() error {
 	for _, item := range events.Items {
 		event, err := NewEvent(item)
 		if err != nil {
-			logger.Debug("何もしない \"%s\" はオンライン会議ではない", item.Summary)
+			logger.Debug("\"%s\" はオンライン会議ではない", item.Summary)
 			continue
 		}
 		timeToStartSec := event.TimeToStartSec()
 		if timeToStartSec < 0 {
 			// 開始時刻を過ぎている。現在時刻より後のイベントを取っているため、基本的にはありえない
-			logger.Debug("何もしない \"%s\" は既に%d分前に開始している", event, -timeToStartSec/60)
+			logger.Debug("\"%s\" は既に%d分前に開始している", event, -timeToStartSec/60)
 			continue
 		} else if timeToStartSec < r.Config.MinutesAgo*60 {
 			eventAlreadyRun, err := eventIDStore.IsInclude(event.ID)
@@ -45,9 +45,9 @@ func (r *Runner) Run() error {
 				return fmt.Errorf("failed to load event id list from eventIDStore: %v", err)
 			}
 			if eventAlreadyRun {
-				logger.Debug("何もしない \"%s\" は既に開始済み", event)
+				logger.Debug("\"%s\" は既に開始済み", event)
 			} else {
-				logger.Info("TV会議開始  \"%s\" は%d分%d秒後に開始", event, timeToStartSec/60, timeToStartSec%60)
+				logger.Info("\"%s\" は%d分%d秒後に開始なので、TV会議開始", event, timeToStartSec/60, timeToStartSec%60)
 				err := exec.Command("open", "-a", r.Config.BrowserApp, event.URL).Run()
 				if err != nil {
 					return fmt.Errorf("failed to open event url: %v", err)
@@ -58,10 +58,10 @@ func (r *Runner) Run() error {
 				}
 			}
 		} else {
-			if timeToStartSec/60 < 10 {
-				logger.Info("何もしない \"%s\" は%d分%d秒後に開始", event, timeToStartSec/60, timeToStartSec%60)
+			if timeToStartSec/60 < 5 {
+				logger.Info("\"%s\" は%d分%d秒後に開始なので、何もしない", event, timeToStartSec/60, timeToStartSec%60)
 			} else {
-				logger.Debug("何もしない \"%s\" は%d分%d秒後に開始", event, timeToStartSec/60, timeToStartSec%60)
+				logger.Debug("\"%s\" は%d分%d秒後に開始なので、何もしない", event, timeToStartSec/60, timeToStartSec%60)
 			}
 		}
 	}
