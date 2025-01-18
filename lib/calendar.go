@@ -64,6 +64,6 @@ func (g *GCal) GetCalendarEvents(basisTime time.Time) (*calendar.Events, error) 
 	if err != nil {
 		return nil, fmt.Errorf("fail to list events: %v", err)
 	}
-	logger.Info("カレンダーから%d件のイベントを取得", len(events.Items))
+	logger.Debug("カレンダーから%d件のイベントを取得", len(events.Items))
 	return events, nil
 }
