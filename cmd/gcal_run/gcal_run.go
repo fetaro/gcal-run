@@ -25,21 +25,16 @@ func main() {
 	kingpin.Parse()
 	config := lib.NewConfig(*credentialPath, *installDir, *minuteAgo, *browserApp)
 	runner := lib.NewRunner(config)
-	runTimingCalculator := lib.NewRunTimingCalculator(*minuteAgo)
 	logger := lib.GetLogger()
 	logger.Info("開始")
 	logger.Info(config.String())
 	for {
-		// 現在時刻を取得
-		now := time.Now()
-		if runTimingCalculator.IsRunTiming(now.Minute()) {
-			err := runner.Run()
-			if err != nil {
-				logger.Error("Error: %v", err)
-				os.Exit(1)
-			}
+		err := runner.Run()
+		if err != nil {
+			logger.Error("Error: %v", err)
+			os.Exit(1)
 		}
-		logger.Debug("wait 1 minutes")
-		time.Sleep(60 * time.Second)
+		logger.Debug("wait 30 sec")
+		time.Sleep(30 * time.Second)
 	}
 }
