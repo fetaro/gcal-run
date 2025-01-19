@@ -1,9 +1,10 @@
-package lib
+package gcal_run
 
 import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"os"
 	"time"
 
@@ -18,10 +19,10 @@ const (
 )
 
 type GCal struct {
-	Config *Config
+	Config *common.Config
 }
 
-func NewCalendar(config *Config) *GCal {
+func NewCalendar(config *common.Config) *GCal {
 	return &GCal{
 		Config: config,
 	}
@@ -58,7 +59,7 @@ func (g *GCal) GetCalendarEvents(basisTime time.Time) (*calendar.Events, error) 
 		return nil, fmt.Errorf("fail to make CalendarService: %v", err)
 	}
 
-	logger.Debug("get up to %d calendar events after %s", ApiMaxResult, basisTime.Format(time.RFC3339))
+	logger.Debug("カレンダーから最大 %d 件のイベントを取得", ApiMaxResult)
 	events, err := srv.Events.List("primary").ShowDeleted(false).
 		SingleEvents(true).TimeMin(basisTime.Format(time.RFC3339)).MaxResults(ApiMaxResult).OrderBy("startTime").Do()
 	if err != nil {

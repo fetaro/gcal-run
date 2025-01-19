@@ -15,8 +15,8 @@ for ARCH in "${ARCH_LIST[@]}" ; do
     NAME="gcal-run_${GOOS}_${ARCH}_${VERSION}"
     mkdir -p "dist/${NAME}"
     cp README.md "dist/${NAME}/README.md"
-    GCO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} go build -o "dist/${NAME}/gcal_run"  cmd/gcal_run/gcal_run.go
-    GCO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} go build -o "dist/${NAME}/installer" cmd/installer/installer.go
+    GCO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} go build  -ldflags "-X main.version=${VERSION}" -o "dist/${NAME}/gcal_run"  cmd/gcal_run/gcal_run.go
+    GCO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} go build  -o "dist/${NAME}/installer" cmd/installer/installer.go
     echo ${VERSION} > "dist/${NAME}/VERSION"
     (cd dist && tar zcvf ${NAME}.tar.gz ${NAME})
 done

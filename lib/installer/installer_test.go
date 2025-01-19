@@ -1,7 +1,8 @@
-package lib
+package installer
 
 import (
 	"fmt"
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"os"
 	"path"
 	"testing"
@@ -16,7 +17,7 @@ func TestInstaller_Install(t *testing.T) {
 	installDir := path.Join(os.TempDir(), dirName)
 	os.Mkdir(installDir, 0755)
 	credPath := "/tmp/gcal_run_test/credential.json"
-	config := NewConfig(credPath, installDir, 2, "/Applications/Google Chrome.app")
+	config := common.NewConfig(credPath, installDir, 2, "/Applications/Google Chrome.app")
 	err := config.IsValid()
 	if err != nil {
 		t.Skip(fmt.Sprintf("Skip this test because %v", err))

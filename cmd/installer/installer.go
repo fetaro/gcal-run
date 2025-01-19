@@ -3,117 +3,74 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/alecthomas/kingpin/v2"
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
+	"github.com/fetaro/gcal_forcerun_go/lib/installer"
 	"os"
 	"path/filepath"
-	"strconv"
+)
 
-	"github.com/fetaro/gcal_forcerun_go/lib"
+var (
+	app = kingpin.New("installer", "GoogleカレンダーTV会議強制起動ツールのインストラー")
+
+	installCommand = app.Command("install", "インストール")
+	credentialPath = installCommand.Flag("credential", "GoogleAPIのクレデンシャルファイル").Short('c').Required().ExistingFile()
+
+	updateCommand    = app.Command("update", "アップデート")
+	updateInstallDir = updateCommand.Flag("dir", "インストールディレクトリ").Default(common.DefaultInstallDir()).ExistingDir()
+
+	uninstallCommand    = app.Command("uninstall", "アンインストール")
+	uninstallInstallDir = uninstallCommand.Flag("dir", "インストールディレクトリ").Default(common.DefaultInstallDir()).ExistingDir()
 )
 
 func main() {
-	// 引数の数をチェック
-	if len(os.Args) != 2 {
-		fmt.Println("第一引数にクレデンシャルファイルのパスを指定してください")
-		fmt.Println("使い方 : installer /path/to/credential.json")
-		os.Exit(1)
-	}
-	// 第一引数を取得
-	credential := os.Args[1]
-	credentialPath, err := filepath.Abs(credential)
-	if err != nil {
-		fmt.Printf("クレデンシャルファイルのフルパスの取得に失敗しました: %v\n", err)
-		os.Exit(1)
-	}
-	_, err = os.Stat(credentialPath)
-	if os.IsNotExist(err) {
-		fmt.Println("クレデンシャルファイルを読み取れません")
-		os.Exit(1)
-	}
-	fmt.Println("クレデンシャルファイルを読み取りました. ファイルパス: ", credentialPath)
-
-	scanner := bufio.NewScanner(os.Stdin) // 標準入力を受け付けるスキャナ
-
-	fmt.Printf("インストール先ディレクトリを指定してください\nデフォルトは「%s」です。デフォルトで良い場合は何も入力せずにEnterを押してください\n> ", lib.DefaultInstallDir())
-	scanner.Scan()
-	installDir := scanner.Text()
-	if installDir == "" {
-		installDir = lib.DefaultInstallDir()
-	}
-	// installDirが存在しない場合は作る
-	if _, err := os.Stat(installDir); os.IsNotExist(err) {
-		err := os.MkdirAll(installDir, 0755)
+	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
+	case installCommand.FullCommand():
+		inst := installer.NewInstaller()
+		// ユーザから入力を受けて、設定を作る
+		config, err := inst.ScanInput(*credentialPath)
 		if err != nil {
-			fmt.Printf("ディレクトリを作成できませんでした: %v\n", err)
+			fmt.Printf("%v\n", err)
 			os.Exit(1)
 		}
-		fmt.Printf("ディレクトリを作成しました: %s\n", installDir)
-	} else {
-		fmt.Printf("ディレクトリが既に存在します。: %s\n", installDir)
-		fmt.Printf("中身を空にして、インストールしますか？ (y/n) > ")
-		scanner.Scan()
-		yOrN := scanner.Text()
+		// インストールする
+		err = inst.Install(config)
+		if err != nil {
+			fmt.Printf("インストールに失敗しました: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("常駐プロセスを起動しますか？ (y/n) > ")
+		scanner2 := bufio.NewScanner(os.Stdin) // 標準入力を受け付けるスキャナ
+		scanner2.Scan()
+		yOrN := scanner2.Text()
 		if yOrN == "y" {
-			// installDirの中身を空にする
-			err := os.RemoveAll(installDir)
+			err = installer.NewDaemonCtrl().StartDaemon()
 			if err != nil {
-				fmt.Printf("ディレクトリを空にできませんでした: %v\n", err)
+				fmt.Printf("常駐プロセスの起動に失敗しました: %v\n", err)
 				os.Exit(1)
-			} else {
-				err := os.MkdirAll(installDir, 0755)
-				if err != nil {
-					fmt.Printf("ディレクトリを作成できませんでした: %v\n", err)
-					os.Exit(1)
-				}
-				fmt.Printf("ディレクトリを空にして再作成しました: %s\n", installDir)
 			}
-		} else {
-			fmt.Println("インストールを中止します")
+			fmt.Println("常駐プロセスを起動しました")
+		}
+
+	case updateCommand.FullCommand():
+		binFilePath := filepath.Join(*updateInstallDir, "gcal_run")
+		// binファイルが存在するかチェック
+		_, err := os.Stat(binFilePath)
+		if os.IsNotExist(err) {
+			fmt.Printf("インストールされているバイナリが見つかりません. 探したパス: %s\n", binFilePath)
+			fmt.Println("インストールディレクトリをデフォルトから変更している場合は、引数にインストールディレクトリを指定してください")
 			os.Exit(1)
 		}
-	}
-
-	var browserApp string
-	for {
-		fmt.Printf("ブラウザアプリケーションのパスを指定してください\nデフォルトは「%s」です。デフォルトで良い場合は何も入力せずにEnterを押してください\n> ", lib.DefaultBrowserApp)
-		scanner.Scan()
-		browserApp = scanner.Text()
-		_, err := os.Stat(browserApp)
-		if browserApp == "" {
-			browserApp = lib.DefaultBrowserApp
-			break
-		}
+		installer.NewUpdator().Update(*updateInstallDir)
+	case uninstallCommand.FullCommand():
+		binFilePath := filepath.Join(*uninstallInstallDir, "gcal_run")
+		// binファイルが存在するかチェック
+		_, err := os.Stat(binFilePath)
 		if os.IsNotExist(err) {
-			fmt.Println("ブラウザアプリケーションが存在しません。再度入力してください")
-		} else {
-			break
+			fmt.Printf("インストールされているバイナリが見つかりません. 探したパス: %s\n", binFilePath)
+			fmt.Println("インストールディレクトリをデフォルトから変更している場合は、引数にインストールディレクトリを指定してください")
+			os.Exit(1)
 		}
-	}
-
-	var minutesAgoStr string
-	var minutesAgo int
-	for {
-		fmt.Printf("会議の何分前に起動するか指定してください\nデフォルトは「%d分」です。デフォルトで良い場合は何も入力せずにEnterを押してください\n> ", lib.DefaultMinutesAgo)
-		scanner.Scan()
-		minutesAgoStr = scanner.Text()
-		_, err := os.Stat(minutesAgoStr)
-		if minutesAgoStr == "" {
-			minutesAgo = lib.DefaultMinutesAgo
-			break
-		}
-		minutesAgo, err = strconv.Atoi(minutesAgoStr)
-		if err != nil {
-			fmt.Println("数値を入力してください")
-			continue
-		} else {
-			break
-		}
-	}
-
-	installer := lib.NewInstaller()
-	config := lib.NewConfig(credentialPath, installDir, minutesAgo, browserApp)
-	err = installer.Install(config)
-	if err != nil {
-		fmt.Printf("インストールに失敗しました: %v\n", err)
-		os.Exit(1)
+		installer.NewUninstaller().Uninstall(*uninstallInstallDir)
 	}
 }

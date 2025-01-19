@@ -1,7 +1,7 @@
 // このコードは、以下のサイトのコードを参考にしています。
 // https://github.com/googleapis/google-api-go-client/blob/main/examples/main.go
 
-package lib
+package gcal_run
 
 import (
 	"context"

@@ -1,6 +1,7 @@
-package lib
+package gcal_run
 
 import (
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"testing"
 	"time"
 
@@ -9,7 +10,7 @@ import (
 
 // このテストは/tmp/gcal_run_test/credential.jsonと/tmp/gcal_run_test/oauth_tokenが存在する場合のみ実行される
 func TestGCalGetCalendarEvents(t *testing.T) {
-	config := NewConfig("/tmp/gcal_run_test/credential.json", "/tmp/gcal_run_test", 30, "/Applications/Google Chrome.app")
+	config := common.NewConfig("/tmp/gcal_run_test/credential.json", "/tmp/gcal_run_test", 30, "/Applications/Google Chrome.app")
 	err := config.IsValid()
 	if err != nil {
 		t.Skip("Skip this test because credential.json and oauth_token is not found")
