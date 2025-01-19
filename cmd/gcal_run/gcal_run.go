@@ -5,7 +5,6 @@ import (
 	"github.com/fetaro/gcal_forcerun_go/lib/gcal_run"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -13,21 +12,22 @@ import (
 )
 
 var version string // ビルドスクリプトで埋め込む
-var poolingIntervalSec int = 30
+var poolingIntervalSec = 30
 var (
-	app            = kingpin.New("gcal_run", "gcal_run: GoogleカレンダーTV会議強制起動ツール")
-	credentialPath = app.Flag("credential", "GoogleAPIのクレデンシャルファイル").Short('c').Required().ExistingFile()
-	installDir     = app.Flag("dir", "インストールディレクトリ").Default(common.DefaultInstallDir()).ExistingDir()
-	minuteAgo      = app.Flag("minute", "会議開始の何分前に起動するか").Default(strconv.Itoa(common.DefaultMinutesAgo)).Int()
-	browserApp     = app.Flag("browser", "ブラウザアプリケーション").Default(common.DefaultBrowserApp).ExistingDir()
+	app        = kingpin.New("gcal_run", "gcal_run: GoogleカレンダーTV会議強制起動ツール")
+	configPath = app.Flag("config", "設定ファイルのパス").Short('c').Default(common.GetConfigPath(common.GetAppDir())).String()
 )
 
 func main() {
 	app.Version(version)
 	app.Parse(os.Args[1:])
-	config := common.NewConfig(*credentialPath, *installDir, *minuteAgo, *browserApp)
-	runner := gcal_run.NewRunner(config)
+	config, err := common.LoadConfigFromPath(*configPath)
+	if err != nil {
+		panic(err)
+	}
+	runner := gcal_run.NewRunner(config, common.GetAppDir())
 	logger := gcal_run.GetLogger()
+	logger.Info("設定ファイルパス: %s", *configPath)
 	logger.Info(config.String())
 	// ctrl+cで終了したときのシグナルをキャッチする
 	sigs := make(chan os.Signal, 1)
@@ -41,7 +41,7 @@ func main() {
 		logger.Info("終了")
 		os.Exit(0)
 	}()
-	logger.Info("開始。Googleカレンダーのイベントを%s秒毎にチェックします。", poolingIntervalSec)
+	logger.Info("開始。Googleカレンダーのイベントを%d秒毎にチェックします。", poolingIntervalSec)
 	for {
 		err := runner.Run()
 		if err != nil {

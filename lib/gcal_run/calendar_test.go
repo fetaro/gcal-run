@@ -1,7 +1,6 @@
 package gcal_run
 
 import (
-	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"testing"
 	"time"
 
@@ -10,16 +9,11 @@ import (
 
 // このテストは/tmp/gcal_run_test/credential.jsonと/tmp/gcal_run_test/oauth_tokenが存在する場合のみ実行される
 func TestGCalGetCalendarEvents(t *testing.T) {
-	config := common.NewConfig("/tmp/gcal_run_test/credential.json", "/tmp/gcal_run_test", 30, "/Applications/Google Chrome.app")
-	err := config.IsValid()
-	if err != nil {
-		t.Skip("Skip this test because credential.json and oauth_token is not found")
-	}
 	dateStr := "2023-12-30T11:15:00+09:00"
 	// Time.time型に変換する
 	basisTime, err := time.Parse(time.RFC3339, dateStr)
 	assert.NoError(t, err)
-	gcal := NewCalendar(config)
+	gcal := NewCalendar("/tmp/gcal_run_test/credential.json", "/tmp/oauth_token")
 	calendarEventList, err := gcal.GetCalendarEvents(basisTime)
 	assert.NoError(t, err)
 	assert.Equal(t, "test1", calendarEventList.Items[0].Summary)

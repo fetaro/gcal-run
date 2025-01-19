@@ -9,19 +9,22 @@ import (
 
 type Runner struct {
 	Config       *common.Config
+	AppDir       string
 	EventIDStore *EventIDStore
 }
 
-func NewRunner(config *common.Config) *Runner {
+func NewRunner(config *common.Config, appDir string) *Runner {
 	return &Runner{
 		Config:       config,
-		EventIDStore: NewEventIDStore(config.EventIDStorePath),
+		AppDir:       appDir,
+		EventIDStore: NewEventIDStore(common.GetEventIDStorePath(appDir)),
 	}
 }
 
 func (r *Runner) Run() error {
 	logger := GetLogger()
-	calendar := NewCalendar(r.Config)
+	calendar := NewCalendar(r.Config.CredentialPath, common.GetTokenPath(r.AppDir))
+
 	events, err := calendar.GetCalendarEvents(time.Now())
 	if err != nil {
 		return fmt.Errorf("failed to get calendar events: %v", err)

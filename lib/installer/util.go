@@ -1,12 +1,13 @@
 package installer
 
 import (
+	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 )
 
-// CopyDir copies the contents of the source directory to the destination directory.
 func CopyDir(src string, dst string) error {
 	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -28,7 +29,6 @@ func CopyDir(src string, dst string) error {
 	})
 }
 
-// copyFile copies a file from src to dst.
 func copyFile(src string, dst string) error {
 	in, err := os.Open(src)
 	if err != nil {
@@ -48,4 +48,11 @@ func copyFile(src string, dst string) error {
 	}
 
 	return out.Close()
+}
+
+func PrintAndScanStdInput(msg string) string {
+	fmt.Printf(msg)
+	scanner := bufio.NewScanner(os.Stdin) // 標準入力を受け付けるスキャナ
+	scanner.Scan()
+	return scanner.Text()
 }
