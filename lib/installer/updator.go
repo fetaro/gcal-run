@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -30,16 +29,8 @@ func (u *Updator) Update(installDir string) {
 
 	// VERSIONファイルが有るか確認
 	if _, err := os.Stat(versionFilePath); os.IsNotExist(err) {
-		// VERSIONファイルが無い場合は、バイナリからバージョンを取得する
-		// binFilePathのバイナリを --version の引数を付けて実行し、バージョンを取得する
-		binFilePath := filepath.Join(installDir, "gcal_run")
-		fmt.Printf("インストールされているツールのバージョンをバイナリファイルから取得します: %s --version\n", binFilePath)
-		stdOutErr, err := exec.Command(binFilePath, "--version").CombinedOutput()
-		if err != nil {
-			fmt.Printf("インストールされているツールのバージョンの取得に失敗しました。エラー： %v\n", err)
-			os.Exit(1)
-		}
-		installedVersionStr = string(stdOutErr)
+		// VERSIONファイルが無い場合は、v1.1.1より前
+		installedVersionStr = "v1.1.1"
 	} else {
 		fmt.Printf("インストールされているバージョンをバージョンファイルから取得します: %s\n", versionFilePath)
 		// ./VERSION ファイルの中身を読む
