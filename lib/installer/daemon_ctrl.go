@@ -89,10 +89,17 @@ func (d *DaemonCtrl) StartDaemon() error {
 	err := launchctlCmd.Run()
 	if err != nil {
 		return fmt.Errorf("常駐プロセス(LaunchAgents)の開始に失敗しました. エラー: %v", err)
-	} else {
-		fmt.Println("常駐プロセス(LaunchAgents)を開始しました")
-		return nil
 	}
+	isRunning, err := d.IsDaemonRunning()
+	if err != nil {
+		return fmt.Errorf("常駐プロセス(LaunchAgents)の起動確認に失敗しました. エラー: %v", err)
+	}
+	if !isRunning {
+		return fmt.Errorf("常駐プロセス(LaunchAgents)のコマンドは成功しましたが、プロセスは起動できませんでした")
+	}
+	fmt.Println("常駐プロセス(LaunchAgents)を開始しました")
+	return nil
+
 }
 
 func (d *DaemonCtrl) StopDaemon() error {
