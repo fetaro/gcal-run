@@ -31,4 +31,5 @@ func TestGCalGetCalendarEvents(t *testing.T) {
 	assert.Equal(t, "test1", calendarEventList.Items[0].Summary)
 	assert.Equal(t, "test2", calendarEventList.Items[1].Summary)
 	assert.Equal(t, "test3", calendarEventList.Items[2].Summary)
+
 }
