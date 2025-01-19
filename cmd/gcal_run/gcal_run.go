@@ -27,6 +27,7 @@ func main() {
 	}
 	runner := gcal_run.NewRunner(config, common.GetAppDir())
 	logger := gcal_run.GetLogger()
+	logger.Info("バージョン: %s", version)
 	logger.Info("設定ファイルパス: %s", *configPath)
 	logger.Info(config.String())
 	// ctrl+cで終了したときのシグナルをキャッチする
