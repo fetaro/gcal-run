@@ -45,12 +45,6 @@ func (d *DaemonCtrl) GeneratePlistStr(c *common.Config) string {
 	<key>ProgramArguments</key>
 	<array>
 		<string>%s</string>
-        <string>--credential</string>
-		<string>%s</string>
-        <string>--minute</string>
-		<string>%d</string>
-        <string>--browser</string>
-		<string>%s</string>
 	</array>
 
 	<key>StandardErrorPath</key>
@@ -60,7 +54,7 @@ func (d *DaemonCtrl) GeneratePlistStr(c *common.Config) string {
 	<string>%s</string>
 </dict>
 </plist>
-`, d.GetDaemonName(), binPath, c.CredentialPath, c.MinutesAgo, c.BrowserApp, logPath, logPath)
+`, d.GetDaemonName(), binPath, logPath, logPath)
 }
 
 func (d *DaemonCtrl) CreatePListFile(c *common.Config) error {
