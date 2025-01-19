@@ -1,4 +1,5 @@
 #!/bin/bash
+# masterブランチにおいてtagを打ってpushすると、Github Actionでリリースされる
 set -e
 set -x
 
