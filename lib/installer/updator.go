@@ -77,6 +77,19 @@ func (u *Updator) Update(installDir string) {
 			// ダウンロードして解凍
 			fmt.Println("新しいバージョンをインストールディレクトリにダウンロードします")
 			NewDownloader().Download(gitVersion, installDir)
+			// 再起動
+			daemonCtrl := NewDaemonCtrl()
+			err = daemonCtrl.StopDaemon()
+			if err != nil {
+				fmt.Printf("常駐プロセスの停止に失敗しました: %v\n", err)
+			}
+			err = daemonCtrl.StartDaemon()
+			if err != nil {
+				fmt.Printf("常駐プロセスの起動に失敗しました: %v\n", err)
+				fmt.Printf("マニュアルに従って手動で起動してください")
+				os.Exit(1)
+			}
+			fmt.Println("常駐プロセスを再起動しました")
 			fmt.Println("アップデート正常終了")
 		} else {
 			fmt.Println("中止しました")
