@@ -50,10 +50,10 @@ Google Calendar APIのJSON形式のクレデンシャルファイルを取得し
 
 解凍して、以下のコマンドでインストーラを実行してください。
 ```text
-# 解答したディレクトリに移動
+# 解凍したディレクトリに移動
 cd 
 # インストラーの実行
-./installer (クレデンシャルファイルのパス)
+./installer install -c (クレデンシャルファイルのパス)
 ```
 
 ここで、「アプリが悪質なソフトウェアであるかどうかAppleで確認できない」と表示された場合は、
@@ -102,22 +102,21 @@ tail -f ${HOME}/.gcal_run/gcal_run.log
 launchctl unload ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
 ```
 
-### アンインストール
-
-```text
-# 停止
-launchctl unload ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
-
-# デーモンプロセスファイルの削除
-rm ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
-
-# インストールディレクトリの削除(インストールディレクトリを変更している場合は引数を変えてください)
-rm -rf ${HOME}/.gcal_run/
-```
-
 ### 設定の変更
 バックグラウンドプロセスを停止した後、`${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist`を編集し、再度起動してください。
 
+### アップデート
+インストールディレクトリで以下を実行
+```text
+./installer update 
+```
+
+### アンインストール
+
+インストールディレクトリで以下を実行
+```text
+./installer uninstall 
+```
 
 ### 手動で実行して使う場合
 
