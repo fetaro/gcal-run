@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
-	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"os"
 	"time"
 
@@ -19,29 +18,31 @@ const (
 )
 
 type GCal struct {
-	Config *common.Config
+	CredentialPath string
+	OauthTokenPath string
 }
 
-func NewCalendar(config *common.Config) *GCal {
+func NewCalendar(credentialPath string, oauthTokenPath string) *GCal {
 	return &GCal{
-		Config: config,
+		CredentialPath: credentialPath,
+		OauthTokenPath: oauthTokenPath,
 	}
 }
 
 func (g *GCal) GetCalendarEvents(basisTime time.Time) (*calendar.Events, error) {
 	logger := GetLogger()
 	ctx := context.Background()
-	b, err := os.ReadFile(g.Config.CredentialPath)
+	b, err := os.ReadFile(g.CredentialPath)
 	if err != nil {
 		return nil, fmt.Errorf("fail to read credential file: %v", err)
 	}
 
-	config, err := google.ConfigFromJSON(b, calendar.CalendarReadonlyScope)
+	googleConfig, err := google.ConfigFromJSON(b, calendar.CalendarReadonlyScope)
 	if err != nil {
-		return nil, fmt.Errorf("fail to parse credential file to config: %v", err)
+		return nil, fmt.Errorf("fail to parse credential file to googleConfig: %v", err)
 	}
 
-	f, err := os.Open(g.Config.TokenPath)
+	f, err := os.Open(g.OauthTokenPath)
 	if err != nil {
 		return nil, fmt.Errorf("fail to open token file: %v", err)
 	}
@@ -50,7 +51,7 @@ func (g *GCal) GetCalendarEvents(basisTime time.Time) (*calendar.Events, error) 
 	if err != nil {
 		return nil, fmt.Errorf("fail to decode token file: %v", err)
 	}
-	oAuthClient := config.Client(ctx, token)
+	oAuthClient := googleConfig.Client(ctx, token)
 	if err != nil {
 		return nil, fmt.Errorf("fail to make OAuth client: %v", err)
 	}

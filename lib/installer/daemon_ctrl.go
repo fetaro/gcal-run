@@ -27,6 +27,8 @@ func (d *DaemonCtrl) GetPListPath() string {
 }
 
 func (d *DaemonCtrl) GeneratePlistStr(c *common.Config) string {
+	logPath := common.GetLogPath(common.GetAppDir())
+	binPath := common.GetBinPath(common.GetAppDir())
 	return fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -45,8 +47,6 @@ func (d *DaemonCtrl) GeneratePlistStr(c *common.Config) string {
 		<string>%s</string>
         <string>--credential</string>
 		<string>%s</string>
-        <string>--dir</string>
-		<string>%s</string>
         <string>--minute</string>
 		<string>%d</string>
         <string>--browser</string>
@@ -60,7 +60,7 @@ func (d *DaemonCtrl) GeneratePlistStr(c *common.Config) string {
 	<string>%s</string>
 </dict>
 </plist>
-`, d.GetDaemonName(), c.BinPath, c.CredentialPath, c.InstallDir, c.MinutesAgo, c.BrowserApp, c.LogPath, c.LogPath)
+`, d.GetDaemonName(), binPath, c.CredentialPath, c.MinutesAgo, c.BrowserApp, logPath, logPath)
 }
 
 func (d *DaemonCtrl) CreatePListFile(c *common.Config) error {
@@ -121,7 +121,7 @@ func (d *DaemonCtrl) IsDaemonRunning() (bool, error) {
 		fmt.Println("常駐プロセス(LaunchAgents)が起動していません")
 		return false, nil
 	}
-	//stdoutの一文字目が「-」であれば、デーモンが起動していない
+	//stdoutの一文字目が「-」であれば、常駐プロセスが起動していない
 	pid := stdout[0]
 	if pid == '-' {
 		fmt.Println("常駐プロセス(LaunchAgents)が起動していません")

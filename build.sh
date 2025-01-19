@@ -18,11 +18,10 @@ GOOS="darwin"
 for ARCH in "${ARCH_LIST[@]}" ; do
     echo "[ ${ARCH} ]"
     NAME="gcal-run_${GOOS}_${ARCH}_${VERSION}"
+    rm -rf "dist/${NAME}"
     mkdir -p "dist/${NAME}"
-    cp README.md "dist/${NAME}/README.md"
     GCO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} go build  -ldflags "-X main.version=${VERSION}" -o "dist/${NAME}/gcal_run"  cmd/gcal_run/gcal_run.go
-    GCO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} go build  -o "dist/${NAME}/installer" cmd/installer/installer.go
-    echo ${VERSION} > "dist/${NAME}/VERSION"
+    GCO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} go build  -ldflags "-X main.version=${VERSION}" -o "dist/${NAME}/installer" cmd/installer/installer.go
     (cd dist && tar zcvf ${NAME}.tar.gz ${NAME})
 done
 

@@ -46,8 +46,9 @@ func (u *Downloader) downaloadRelease(version *Version) string {
 	return downloadGzPath
 }
 
-func (u *Downloader) DownloadAndCopy(gitVersion *Version, installDir string) {
+func (u *Downloader) DownloadAndCopy(gitVersion *Version, appDir string) {
 	downloadedGzPath := u.downaloadRelease(gitVersion)
+
 	// tar zxvf downloadedGzPath -C /tmp のコマンドを実行
 	fmt.Printf("tar zxvf %s -C /tmp\n", downloadedGzPath)
 	stdOutErr, err := exec.Command("tar", "zxvf", downloadedGzPath, "-C", "/tmp").CombinedOutput()
@@ -55,20 +56,29 @@ func (u *Downloader) DownloadAndCopy(gitVersion *Version, installDir string) {
 	if err != nil {
 		panic(err)
 	}
-	decompressedDir := strings.Replace(downloadedGzPath, ".tar.gz", "", 1)
+
 	// decompressedDirの中身をinstallDirにコピー
-	fmt.Printf("%s の中身を %s にコピーします\n", decompressedDir, installDir)
-	CopyDir(decompressedDir, installDir)
-	// バイナリファイルに実行権限を付与
-	binPath := filepath.Join(installDir, "gcal_run")
-	fmt.Printf("chmod +x %s\n", binPath)
-	stdOutErr, err = exec.Command("chmod", "+x", binPath).CombinedOutput()
-	fmt.Println(string(stdOutErr))
+	decompressedDir := strings.Replace(downloadedGzPath, ".tar.gz", "", 1)
+	fmt.Printf("%s の中身を %s にコピーします\n", decompressedDir, appDir)
+	err = CopyDir(decompressedDir, appDir)
 	if err != nil {
 		panic(err)
 	}
+	
+	// バイナリファイルに実行権限を付与
+	for _, binFileName := range []string{"gcal_run", "installer"} {
+		binPath := filepath.Join(appDir, binFileName)
+		fmt.Printf("chmod +x %s\n", binPath)
+		stdOutErr, err = exec.Command("chmod", "+x", binPath).CombinedOutput()
+		fmt.Println(string(stdOutErr))
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	// decompressedDirを削除
 	err = os.RemoveAll(decompressedDir)
+
 	// ダウンロードしたファイルを削除
 	err = os.Remove(downloadedGzPath)
 	if err != nil {
