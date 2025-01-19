@@ -104,7 +104,9 @@ launchctl unload ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
 ```
 
 #### 設定の変更
-常駐プロセスを停止した後、`${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist`を編集し、再度起動してください。
+常駐プロセスを停止した後、
+`${HOME}/.gcal_run/config.json`を編集し、
+再度常駐プロセスを起動してください。
 
 #### アップデート
 インストールディレクトリで以下を実行
