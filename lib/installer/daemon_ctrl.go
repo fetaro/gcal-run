@@ -26,7 +26,7 @@ func (d *DaemonCtrl) GetPListPath() string {
 	return filepath.Join(os.Getenv("HOME"), fmt.Sprintf("Library/LaunchAgents/%s.plist", d.GetDaemonName()))
 }
 
-func (d *DaemonCtrl) GeneratePlistStr(c *common.Config) string {
+func (d *DaemonCtrl) GeneratePlistStr() string {
 	logPath := common.GetLogPath(common.GetAppDir())
 	binPath := common.GetBinPath(common.GetAppDir())
 	return fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
@@ -57,8 +57,8 @@ func (d *DaemonCtrl) GeneratePlistStr(c *common.Config) string {
 `, d.GetDaemonName(), binPath, logPath, logPath)
 }
 
-func (d *DaemonCtrl) CreatePListFile(c *common.Config) error {
-	err := os.WriteFile(d.GetPListPath(), []byte(d.GeneratePlistStr(c)), 0644)
+func (d *DaemonCtrl) CreatePListFile() error {
+	err := os.WriteFile(d.GetPListPath(), []byte(d.GeneratePlistStr()), 0644)
 	if err != nil {
 		return fmt.Errorf("常駐プロセス(LaunchAgents)ファイルの作成に失敗しました. エラー: %v", err)
 	} else {

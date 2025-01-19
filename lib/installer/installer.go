@@ -90,7 +90,7 @@ func (i *Installer) Install(config *common.Config, appDir string) {
 	NewDownloader().DownloadAndCopy(latestVersion, appDir)
 
 	// plistファイルを作成
-	err = NewDaemonCtrl().CreatePListFile(config)
+	err = NewDaemonCtrl().CreatePListFile()
 	if err != nil {
 		panic(err)
 	}

@@ -2,7 +2,6 @@ package installer
 
 import (
 	"fmt"
-	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -56,11 +55,7 @@ func (u *Updator) Update(installDir string) {
 			NewDownloader().DownloadAndCopy(gitVersion, installDir)
 
 			//plistファイルを更新します
-			config, err := common.LoadConfig()
-			if err != nil {
-				panic(err)
-			}
-			err = NewDaemonCtrl().CreatePListFile(config)
+			err = NewDaemonCtrl().CreatePListFile()
 			if err != nil {
 				panic(err)
 			}
