@@ -128,14 +128,7 @@ launchctl unload ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
 以下のコマンドでプログラムを起動してください。このプログラムが起動している間は自動で会議が始まります
 ```text
 cd ${HOME}/.gcal_run
-./gcal_run --credential (クレデンシャルファイル)
-```
-
-オプションを指定することも可能です
-```text
-./gcal_run --credential (クレデンシャルファイル) \
-           --minute (何分前に起動するか) \
-           --browser (ブラウザ)
+./gcal_run
 ```
 
 #### 停止
