@@ -1,7 +1,8 @@
-package lib
+package installer
 
 import (
 	"fmt"
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -25,7 +26,7 @@ func (d *DaemonCtrl) GetPListPath() string {
 	return filepath.Join(os.Getenv("HOME"), fmt.Sprintf("Library/LaunchAgents/%s.plist", d.GetDaemonName()))
 }
 
-func (d *DaemonCtrl) GeneratePlistStr(c *Config) string {
+func (d *DaemonCtrl) GeneratePlistStr(c *common.Config) string {
 	return fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -62,7 +63,7 @@ func (d *DaemonCtrl) GeneratePlistStr(c *Config) string {
 `, d.GetDaemonName(), c.BinPath, c.CredentialPath, c.InstallDir, c.MinutesAgo, c.BrowserApp, c.LogPath, c.LogPath)
 }
 
-func (d *DaemonCtrl) CreatePListFile(c *Config) error {
+func (d *DaemonCtrl) CreatePListFile(c *common.Config) error {
 	err := os.WriteFile(d.GetPListPath(), []byte(d.GeneratePlistStr(c)), 0644)
 	if err != nil {
 		return fmt.Errorf("常駐プロセス(LaunchAgents)ファイルの作成に失敗しました. エラー: %v", err)

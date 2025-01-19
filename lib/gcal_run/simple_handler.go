@@ -1,4 +1,4 @@
-package lib
+package gcal_run
 
 import (
 	"context"

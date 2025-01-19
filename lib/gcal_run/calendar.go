@@ -1,9 +1,10 @@
-package lib
+package gcal_run
 
 import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"os"
 	"time"
 
@@ -18,10 +19,10 @@ const (
 )
 
 type GCal struct {
-	Config *Config
+	Config *common.Config
 }
 
-func NewCalendar(config *Config) *GCal {
+func NewCalendar(config *common.Config) *GCal {
 	return &GCal{
 		Config: config,
 	}

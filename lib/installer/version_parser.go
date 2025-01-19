@@ -1,4 +1,4 @@
-package lib
+package installer
 
 import (
 	"fmt"
@@ -10,6 +10,14 @@ type Version struct {
 	major  int
 	minor  int
 	bugfix int
+}
+
+func NewVersion(major int, minor int, bugfix int) *Version {
+	return &Version{
+		major:  major,
+		minor:  minor,
+		bugfix: bugfix,
+	}
 }
 
 func (v *Version) IsNewer(other *Version) bool {

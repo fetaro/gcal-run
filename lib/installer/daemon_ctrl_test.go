@@ -1,13 +1,14 @@
-package lib
+package installer
 
 import (
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 )
 
 func TestDaemonCtrl_GeneratePlistStr(t *testing.T) {
-	config := NewConfig("credpath", "installDir", 30, "/Applications/Google Chrome.app")
+	config := common.NewConfig("credpath", "installDir", 30, "/Applications/Google Chrome.app")
 	actual := NewDaemonCtrl().GeneratePlistStr(config)
 	assert.Contains(t, actual, "credpath")
 	assert.Contains(t, actual, "installDir/gcal_run")
@@ -22,7 +23,7 @@ func TestDaemonCtrl_GetPListPath(t *testing.T) {
 
 func TestDaemonCtrl_CreatePListFile(t *testing.T) {
 	os.Setenv("GCAL_RUN_TEST", "1")
-	c := NewConfig("/tmp/gcal_forcerun_secret.json", "/tmp/gcal_run_test", 2, "/Applications/Google Chrome.app")
+	c := common.NewConfig("/tmp/gcal_forcerun_secret.json", "/tmp/gcal_run_test", 2, "/Applications/Google Chrome.app")
 	daemonCtrl := NewDaemonCtrl()
 	err := daemonCtrl.CreatePListFile(c)
 	assert.NoError(t, err)
@@ -32,7 +33,7 @@ func TestDaemonCtrl_CreatePListFile(t *testing.T) {
 
 func TestDaemonCtrl_StartStopDaemon(t *testing.T) {
 	os.Setenv("GCAL_RUN_TEST", "1")
-	c := NewConfig("/tmp/gcal_forcerun_secret.json", "/tmp/gcal_run_test", 2, "/Applications/Google Chrome.app")
+	c := common.NewConfig("/tmp/gcal_forcerun_secret.json", "/tmp/gcal_run_test", 2, "/Applications/Google Chrome.app")
 	daemonCtrl := NewDaemonCtrl()
 
 	err := daemonCtrl.CreatePListFile(c)

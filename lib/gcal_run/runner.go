@@ -1,17 +1,18 @@
-package lib
+package gcal_run
 
 import (
 	"fmt"
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"os/exec"
 	"time"
 )
 
 type Runner struct {
-	Config       *Config
+	Config       *common.Config
 	EventIDStore *EventIDStore
 }
 
-func NewRunner(config *Config) *Runner {
+func NewRunner(config *common.Config) *Runner {
 	return &Runner{
 		Config:       config,
 		EventIDStore: NewEventIDStore(config.EventIDStorePath),
