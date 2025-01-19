@@ -59,6 +59,14 @@ func (u *Downloader) Download(gitVersion *Version, installDir string) {
 	// decompressedDirの中身をinstallDirにコピー
 	fmt.Printf("%s の中身を %s にコピーします\n", decompressedDir, installDir)
 	CopyDir(decompressedDir, installDir)
+	// バイナリファイルに実行権限を付与
+	binPath := filepath.Join(installDir, "gcal_run")
+	fmt.Printf("chmod +x %s\n", binPath)
+	stdOutErr, err = exec.Command("chmod", "+x", binPath).CombinedOutput()
+	fmt.Println(string(stdOutErr))
+	if err != nil {
+		panic(err)
+	}
 	// decompressedDirを削除
 	err = os.RemoveAll(decompressedDir)
 	// ダウンロードしたファイルを削除
