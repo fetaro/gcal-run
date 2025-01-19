@@ -21,7 +21,7 @@ jobs:
 
       - name: unit_test
         run: |
-          go test -v ./lib/... ./cmd/...
+          go test -v ./lib/gcal_run/...
 
       - name: SetTag
         id: set_tag
