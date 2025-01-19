@@ -68,15 +68,9 @@ func (u *Updator) Update(installDir string) {
 		scanner.Scan()
 		yOrN := scanner.Text()
 		if yOrN == "y" {
-			// installDirの中身を空にする
-			fmt.Printf("インストールディレクトリを空にします: %s\n", installDir)
-			err := os.RemoveAll(installDir)
-			if err != nil {
-				panic(err)
-			}
 			// ダウンロードして解凍
-			fmt.Println("新しいバージョンをインストールディレクトリにダウンロードします")
-			NewDownloader().Download(gitVersion, installDir)
+			fmt.Println("新しいバージョンをインストールディレクトリにコピーします")
+			NewDownloader().DownloadAndCopy(gitVersion, installDir)
 			// 再起動
 			daemonCtrl := NewDaemonCtrl()
 			err = daemonCtrl.StopDaemon()

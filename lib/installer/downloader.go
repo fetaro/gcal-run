@@ -46,7 +46,7 @@ func (u *Downloader) downaloadRelease(version *Version) string {
 	return downloadGzPath
 }
 
-func (u *Downloader) Download(gitVersion *Version, installDir string) {
+func (u *Downloader) DownloadAndCopy(gitVersion *Version, installDir string) {
 	downloadedGzPath := u.downaloadRelease(gitVersion)
 	// tar zxvf downloadedGzPath -C /tmp のコマンドを実行
 	fmt.Printf("tar zxvf %s -C /tmp\n", downloadedGzPath)

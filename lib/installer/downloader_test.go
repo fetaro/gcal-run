@@ -16,5 +16,5 @@ func TestDownloader_Download(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	d.Download(NewVersion(1, 1, 0), filepath.Join(tempDir))
+	d.DownloadAndCopy(NewVersion(1, 1, 0), filepath.Join(tempDir))
 }
