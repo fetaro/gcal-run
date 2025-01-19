@@ -105,7 +105,7 @@ func (i *Installer) Install(c *common.Config) error {
 	if err != nil {
 		return err
 	}
-	NewDownloader().Download(latestVersion, c.InstallDir)
+	NewDownloader().DownloadAndCopy(latestVersion, c.InstallDir)
 	fmt.Printf("ツールをダウンロードしました: version=%s, path=%s\n", latestVersion, c.BinPath)
 
 	fmt.Println("バイナリに実行権限を付与します")
