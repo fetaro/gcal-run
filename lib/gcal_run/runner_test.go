@@ -2,18 +2,20 @@ package gcal_run
 
 import (
 	"github.com/fetaro/gcal_forcerun_go/lib/common"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-// このテストは/tmp/gcal_forcerun_secret.jsonが存在する場合のみ実行される
 func TestRunner(t *testing.T) {
-	config := common.NewConfig("/tmp/gcal_run_test/credential.json", 30, "/Applications/Google Chrome.app")
-	err := config.IsValid()
+	credentialPath := "/tmp/gcal_run_test/credential.json"
+	// credentialPathが存在するか確認する
+	_, err := os.Stat(credentialPath)
 	if err != nil {
-		t.Skip("Skip this test because credential.json and oauth_token is not found")
+		t.Skip("クレデンシャルファイルが存在しないので、テストはスキップ")
 	}
+	config := common.NewConfig("/tmp/gcal_run_test/credential.json", 30, "/Applications/Google Chrome.app")
 	runner := NewRunner(config, "/tmp/gcal_run_test")
 	err = runner.Run()
 	assert.NoError(t, err)
