@@ -49,14 +49,39 @@ func (i *Installer) Install(c *Config) error {
 	fmt.Printf("バイナリに実行権限を付与しました: %s\n", c.BinPath)
 
 	// plistファイルを作成
-	err = os.WriteFile(c.PlistPath, []byte(c.GeneratePlistStr()), 0644)
+	daemonCtrl := NewDaemonCtrl()
+	err = daemonCtrl.CreatePListFile(c)
 	if err != nil {
-		return fmt.Errorf("サービスデーモンファイル(plist)の作成に失敗: %v", err)
+		return err
 	}
-	fmt.Printf("Macのサービスデーモンファイル(plist)を作成しました: %s\n", c.PlistPath)
 
-	fmt.Println(`============================================
+	fmt.Printf(`
+============================================
 インストールが完了しました。
-` + c.InstructString())
+`)
+	fmt.Printf(`
+## 設定
+クレデンシャルファイルパス： %s
+利用ブラウザ : %s
+会議起動時間 : %d 分前
+`, c.CredentialPath, c.BrowserApp, c.MinutesAgo,
+	)
+
+	fmt.Printf(`
+## インストールしたファイル
+インストールディレクトリ : %s
+常駐プロセス(LaunchAgents)ファイル : %s
+`, c.InstallDir, daemonCtrl.GetPListPath())
+
+	fmt.Printf(`
+## 使い方
+### 常駐プロセスの起動
+$ launchctl load %s
+### 常駐プロセスの停止
+$ launchctl unload %s
+### ログの確認
+$ tail -f %s
+`, daemonCtrl.GetPListPath(), daemonCtrl.GetPListPath(), c.LogPath)
+
 	return nil
 }

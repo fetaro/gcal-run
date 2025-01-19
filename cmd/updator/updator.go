@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/tar"
+	"bufio"
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -26,7 +28,7 @@ type Release struct {
 func downaloadRelease(version *lib.Version) string {
 	fileName := fmt.Sprintf("gcal-run_%s_%s_v%s.tar.gz", runtime.GOOS, runtime.GOARCH, version.String())
 	url := fmt.Sprintf("https://github.com/fetaro/gcal-run/releases/download/v%s/%s", version.String(), fileName)
-	fmt.Printf("ダウンロード. URL: %s\n", url)
+	fmt.Printf("GitHubからプログラムのダウンロード. URL: %s\n", url)
 	// HTTPリクエストを作成
 	resp, err := http.Get(url)
 	if err != nil {
@@ -124,38 +126,57 @@ func fileCopy(srcPath string, dstPath string) {
 }
 
 func main() {
-
-	// ./VERSION ファイルの中身を読む
-	file, err := os.Open("./VERSION")
-	if err != nil {
-		panic(err)
+	// 引数の数をチェック
+	var installDir string
+	if len(os.Args) == 2 {
+		installDir = os.Args[1]
+	} else {
+		installDir = lib.DefaultInstallDir()
 	}
-	defer file.Close()
-	binary, err := ioutil.ReadAll(file)
-	if err != nil {
-		panic(err)
+	binFilePath := filepath.Join(installDir, "gcal_run")
+	// binファイルが存在するかチェック
+	_, err := os.Stat(binFilePath)
+	if os.IsNotExist(err) {
+		fmt.Printf("インストールされているバイナリが見つかりません. 探したパス: %s\n", binFilePath)
+		fmt.Println("インストールディレクトリをデフォルトから変更している場合は、第一引数にインストールディレクトリを指定してください")
+		fmt.Println("使い方 : updator /path/to/install/dir")
+		os.Exit(1)
 	}
-	installedVersion, err := lib.ParseVersionStr(string(binary))
+	// binFilePathのバイナリを --version の引数を付けて実行し、バージョンを取得する
+	fmt.Printf("バイナリのバージョンを取得します: %s --version\n", binFilePath)
+	stdOutErr, err := exec.Command(binFilePath, "--version").CombinedOutput()
 	if err != nil {
-		panic(err)
+		fmt.Printf("バージョンの取得に失敗しました。エラー： %v\n", err)
+		os.Exit(1)
+	}
+	versonStr := string(stdOutErr)
+	fmt.Printf("バージョン: %s\n", versonStr)
+	installedVersion, err := lib.ParseVersionStr(versonStr)
+	if err != nil {
+		fmt.Printf("バージョンのパースに失敗しました。エラー: %v\n", err)
+		os.Exit(1)
 	}
 
 	// Githubのリリースのバージョンを取得する
-	resp, err := http.Get("https://api.github.com/repos/fetaro/gcal-run/releases")
+	url := "https://api.github.com/repos/fetaro/gcal-run/releases"
+	resp, err := http.Get(url)
 	if err != nil {
-		panic(err)
+		fmt.Printf("GitHubのAPIからリリース情報の取得に失敗しました。URL:%s error:%v\n", url, err)
+		os.Exit(1)
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		fmt.Printf("GitHubのAPIからリリース情報のリクエストボディの取得に失敗しました。%v\n", err)
+		os.Exit(1)
 	}
 
 	var releases []Release
 	err = json.Unmarshal(body, &releases)
 	if err != nil {
-		panic(err)
+		fmt.Printf("GitHubのAPIからリリース情報のJSONのパースに失敗しました。json=%s, error=%v\n", err)
+		os.Exit(1)
 	}
 	latestTagName := releases[0].TagName
 	gitVersion, err := lib.ParseVersionStr(latestTagName)
@@ -164,21 +185,32 @@ func main() {
 
 	if gitVersion.IsNewer(installedVersion) {
 		fmt.Printf("新しいバージョンがあります: %s\n", latestTagName)
-		downloadTarGzFileName := downaloadRelease(gitVersion)
-		// 解凍する
-		decompressTarGz(downloadTarGzFileName, ".")
 		// インストールする
 		fmt.Printf("プログラムを更新しますか y/n: %s\n")
-		downloadDirName := strings.ReplaceAll(downloadTarGzFileName, ".tar.gz", "")
-		entries, err := ioutil.ReadDir(downloadDirName)
-		if err != nil {
-			panic(err)
-		}
-		for _, entry := range entries {
-			src := filepath.Join(downloadDirName, entry.Name())
-			dst := entry.Name()
-			fmt.Printf("copy src: %s, dst: %s\n", src, dst)
-			//fileCopy(src, dst)
+		scanner := bufio.NewScanner(os.Stdin) // 標準入力を受け付けるスキャナ
+		scanner.Scan()
+		yOrN := scanner.Text()
+		if yOrN == "y" {
+			downloadTarGzFileName := downaloadRelease(gitVersion)
+			// 解凍する
+			decompressTarGz(downloadTarGzFileName, ".")
+			downloadDirName := strings.ReplaceAll(downloadTarGzFileName, ".tar.gz", "")
+			entries, err := ioutil.ReadDir(downloadDirName)
+			if err != nil {
+				panic(err)
+			}
+			// プログラムの停止
+
+			// ファイルをコピー
+			for _, entry := range entries {
+				src := filepath.Join(downloadDirName, entry.Name())
+				dst := entry.Name()
+				fmt.Printf("cp %s %s\n", src, dst)
+				fileCopy(src, dst)
+			}
+			fmt.Println("アップデート正常終了")
+		} else {
+			fmt.Println("中止しました")
 		}
 	} else {
 		fmt.Printf("インストールされているバージョンは最新のバージョンです: %s\n", latestTagName)

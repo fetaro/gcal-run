@@ -7,18 +7,19 @@ import (
 )
 
 type Runner struct {
-	Config *Config
+	Config       *Config
+	EventIDStore *EventIDStore
 }
 
 func NewRunner(config *Config) *Runner {
 	return &Runner{
-		Config: config,
+		Config:       config,
+		EventIDStore: NewEventIDStore(config.EventIDStorePath),
 	}
 }
 
 func (r *Runner) Run() error {
 	logger := GetLogger()
-	eventIDStore := NewEventIDStore(r.Config.EventIDStorePath)
 	calendar := NewCalendar(r.Config)
 	events, err := calendar.GetCalendarEvents(time.Now())
 	if err != nil {
@@ -40,7 +41,7 @@ func (r *Runner) Run() error {
 			logger.Debug("\"%s\" は既に%d分前に開始している", event, -timeToStartSec/60)
 			continue
 		} else if timeToStartSec < r.Config.MinutesAgo*60 {
-			eventAlreadyRun, err := eventIDStore.IsInclude(event.ID)
+			eventAlreadyRun, err := r.EventIDStore.IsInclude(event.ID)
 			if err != nil {
 				return fmt.Errorf("failed to load event id list from eventIDStore: %v", err)
 			}
@@ -52,7 +53,7 @@ func (r *Runner) Run() error {
 				if err != nil {
 					return fmt.Errorf("failed to open event url: %v", err)
 				}
-				err = eventIDStore.SaveID(event.ID)
+				err = r.EventIDStore.SaveID(event.ID)
 				if err != nil {
 					return fmt.Errorf("failed to save event id to eventIDStore: %v", err)
 				}
@@ -66,4 +67,13 @@ func (r *Runner) Run() error {
 		}
 	}
 	return nil
+}
+
+func (r *Runner) CleanUp() {
+	err := r.EventIDStore.Clear()
+	logger := GetLogger()
+	if err != nil {
+		logger.Error("failed to clear event id store: %v", err)
+	}
+	logger.Debug("clean up event id store")
 }

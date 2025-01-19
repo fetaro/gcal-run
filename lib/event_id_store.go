@@ -56,3 +56,7 @@ func (e *EventIDStore) IsInclude(id string) (bool, error) {
 	}
 	return false, nil
 }
+
+func (e *EventIDStore) Clear() error {
+	return os.WriteFile(e.filePath, []byte(""), 0666)
+}

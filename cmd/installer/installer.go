@@ -50,8 +50,9 @@ func main() {
 	} else {
 		fmt.Printf("ディレクトリが既に存在します。: %s\n", installDir)
 		fmt.Printf("中身を空にして、インストールしますか？ (y/n) > ")
-		scanner.Scan()
-		yOrN := scanner.Text()
+		scanner2 := bufio.NewScanner(os.Stdin) // 標準入力を受け付けるスキャナ
+		scanner2.Scan()
+		yOrN := scanner2.Text()
 		if yOrN == "y" {
 			// installDirの中身を空にする
 			err := os.RemoveAll(installDir)
