@@ -18,9 +18,6 @@ jobs:
           go-version: '1.21'
 
       - uses: actions/checkout@v3
-        with:
-          ref: master
-          fetch-depth: 0
 
       - name: unit_test
         run: |
