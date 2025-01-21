@@ -13,7 +13,6 @@ var (
 	app = kingpin.New("installer", "GoogleカレンダーTV会議強制起動ツールのインストラー")
 
 	installCommand = app.Command("install", "インストール")
-	credentialPath = installCommand.Flag("credential", "GoogleAPIのクレデンシャルファイル").Short('c').Required().ExistingFile()
 
 	updateCommand = app.Command("update", "アップデート")
 
@@ -26,31 +25,18 @@ func main() {
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case installCommand.FullCommand():
 		inst := installer.NewInstaller()
-		// ユーザから入力を受けて、設定を作る
-		minutesAgo, browserApp := inst.ScanInput()
-		config := common.NewConfig(*credentialPath, minutesAgo, browserApp)
+		config := inst.ScanInput()
 		// インストールする
 		inst.Install(config, appDir)
-		if installer.PrintAndScanStdInput("常駐プロセスを起動しますか？ (y/n) > ") == "y" {
-			err := installer.NewDaemonCtrl().StartDaemon()
-			if err != nil {
-				panic(err)
-			}
-			fmt.Println("常駐プロセスを起動しました")
-		}
 
 	case updateCommand.FullCommand():
-		// binファイルが存在するかチェック
-		_, err := os.Stat(appDir)
-		if os.IsNotExist(err) {
+		if !common.FileExists(appDir) {
 			fmt.Printf("インストールしたディレクトリが見つかりません. 探したパス: %s\n", appDir)
 			os.Exit(1)
 		}
 		installer.NewUpdator().Update(appDir)
 	case uninstallCommand.FullCommand():
-		// binファイルが存在するかチェック
-		_, err := os.Stat(appDir)
-		if os.IsNotExist(err) {
+		if !common.FileExists(appDir) {
 			fmt.Printf("インストールしたディレクトリが見つかりません. 探したパス: %s\n", appDir)
 			os.Exit(1)
 		}

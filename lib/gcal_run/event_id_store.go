@@ -2,6 +2,7 @@ package gcal_run
 
 import (
 	"fmt"
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -41,8 +42,7 @@ func (e *EventIDStore) LoadIDList() ([]string, error) {
 }
 
 func (e *EventIDStore) IsInclude(id string) (bool, error) {
-	// e.filePathが存在しない場合
-	if _, err := os.Stat(e.filePath); os.IsNotExist(err) {
+	if !common.FileExists(e.filePath) {
 		return false, nil
 	}
 	loadedIDList, err := e.LoadIDList()

@@ -55,7 +55,7 @@ func (u *Updator) Update(installDir string) {
 			NewDownloader().DownloadAndCopy(gitVersion, installDir)
 
 			//plistファイルを更新します
-			err = NewDaemonCtrl().CreatePListFile()
+			err = NewDaemonCtrl().CreatePListFile(true)
 			if err != nil {
 				panic(err)
 			}

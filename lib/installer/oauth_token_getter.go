@@ -1,12 +1,14 @@
 // このコードは、以下のサイトのコードを参考にしています。
 // https://github.com/googleapis/google-api-go-client/blob/main/examples/main.go
 
-package gcal_run
+package installer
 
 import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
+	"github.com/fetaro/gcal_forcerun_go/lib/gcal_run"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -20,17 +22,24 @@ import (
 )
 
 type OAuthTokenGetter struct {
+	ConfirmOverwrite bool
 }
 
-func NewOAuthTokenGetter() *OAuthTokenGetter {
-	return &OAuthTokenGetter{}
+func NewOAuthTokenGetter(confirmOverwrite bool) *OAuthTokenGetter {
+	return &OAuthTokenGetter{ConfirmOverwrite: confirmOverwrite}
 }
 
 func (o *OAuthTokenGetter) saveToken(file string, token *oauth2.Token) error {
-	logger := GetLogger()
+	logger := gcal_run.GetLogger()
+	if common.FileExists(file) {
+		if PrintAndScanStdInput("トークンファイルが既に存在します。上書きしますか？ (y/n) > ") != "y" {
+			logger.Info("トークンファイルの上書きをキャンセルしました。")
+			return nil
+		}
+	}
 	f, err := os.Create(file)
 	if err != nil {
-		return fmt.Errorf("failed to create token file %v", err)
+		return fmt.Errorf("トークンファイルの作成に失敗しました。 %v", err)
 	}
 	defer f.Close()
 	gob.NewEncoder(f).Encode(token)
@@ -39,7 +48,7 @@ func (o *OAuthTokenGetter) saveToken(file string, token *oauth2.Token) error {
 }
 
 func (o *OAuthTokenGetter) getTokenFromWeb(credentialPath string, browserApp string) (*oauth2.Token, error) {
-	logger := GetLogger()
+	logger := gcal_run.GetLogger()
 	ctx := context.Background()
 	b, err := os.ReadFile(credentialPath)
 	if err != nil {
@@ -76,7 +85,7 @@ func (o *OAuthTokenGetter) getTokenFromWeb(credentialPath string, browserApp str
 	config.RedirectURL = ts.URL
 	authURL := config.AuthCodeURL(randState)
 	go OpenUrl(browserApp, authURL)
-	fmt.Printf("ブラウザを使ってこのアプリケーションを認証してください。URL = %s", authURL)
+	fmt.Printf("ブラウザを使ってこのアプリケーションを認証してください。URL = %s\n", authURL)
 	code := <-ch
 	token, err := config.Exchange(ctx, code)
 	if err != nil {

@@ -25,11 +25,11 @@ func CopyDir(src string, dst string) error {
 			return os.MkdirAll(dstPath, info.Mode())
 		}
 
-		return copyFile(path, dstPath)
+		return CopyFile(path, dstPath)
 	})
 }
 
-func copyFile(src string, dst string) error {
+func CopyFile(src string, dst string) error {
 	in, err := os.Open(src)
 	if err != nil {
 		return err

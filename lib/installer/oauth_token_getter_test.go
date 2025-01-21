@@ -1,4 +1,4 @@
-package gcal_run
+package installer
 
 import (
 	"os"
@@ -10,7 +10,7 @@ import (
 )
 
 func TestOAuthTokenGetter_GetAndSaveToken(t *testing.T) {
-	tokenGetter := NewOAuthTokenGetter()
+	tokenGetter := NewOAuthTokenGetter(false)
 	tokenPath := path.Join("/tmp", time.Now().Format("20060102150405"))
 	token, err := tokenGetter.GetAndSaveToken("/tmp/gcal_run_test/credential.json", tokenPath, "/Applications/Google Chrome.app")
 	if err != nil {
