@@ -18,7 +18,7 @@ func TestDaemonCtrl_GetPListPath(t *testing.T) {
 func TestDaemonCtrl_CreatePListFile(t *testing.T) {
 	os.Setenv("GCAL_RUN_TEST", "1")
 	daemonCtrl := NewDaemonCtrl()
-	err := daemonCtrl.CreatePListFile()
+	err := daemonCtrl.CreatePListFile(false)
 	assert.NoError(t, err)
 	err = daemonCtrl.DeletePListFile()
 	assert.NoError(t, err)
@@ -28,7 +28,7 @@ func TestDaemonCtrl_StartStopDaemon(t *testing.T) {
 	os.Setenv("GCAL_RUN_TEST", "1")
 	daemonCtrl := NewDaemonCtrl()
 
-	err := daemonCtrl.CreatePListFile()
+	err := daemonCtrl.CreatePListFile(false)
 	assert.NoError(t, err)
 
 	isRunning, err := daemonCtrl.IsDaemonRunning()
@@ -52,4 +52,13 @@ func TestDaemonCtrl_StartStopDaemon(t *testing.T) {
 	err = daemonCtrl.DeletePListFile()
 	assert.NoError(t, err)
 
+}
+
+func TestDaemonCtrl_IsDaemonRunning(t *testing.T) {
+	//os.Setenv("GCAL_RUN_TEST", "1")
+	daemonCtrl := NewDaemonCtrl()
+
+	isRunning, err := daemonCtrl.IsDaemonRunning()
+	assert.NoError(t, err)
+	assert.False(t, isRunning)
 }

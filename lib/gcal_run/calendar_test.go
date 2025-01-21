@@ -1,7 +1,7 @@
 package gcal_run
 
 import (
-	"os"
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"testing"
 	"time"
 
@@ -10,15 +10,11 @@ import (
 
 func TestGCalGetCalendarEvents(t *testing.T) {
 	credentialPath := "/tmp/gcal_run_test/credential.json"
-	// credentialPathが存在するか確認する
-	_, err := os.Stat(credentialPath)
-	if err != nil {
+	if !common.FileExists(credentialPath) {
 		t.Skip("クレデンシャルファイルが存在しないので、テストはスキップ")
 	}
-	// oauth_tokenが存在するか確認する
 	oauthTokenPath := "/tmp/oauth_token"
-	_, err = os.Stat(oauthTokenPath)
-	if err != nil {
+	if !common.FileExists(oauthTokenPath) {
 		t.Skip("oauth_tokenファイルが存在しないので、テストはスキップ")
 	}
 	dateStr := "2023-12-30T11:15:00+09:00"

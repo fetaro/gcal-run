@@ -21,8 +21,8 @@ func NewConfig(credentialPath string, minutesAgo int, browserApp string) *Config
 }
 
 func (c *Config) IsValid() error {
-	if _, err := os.Stat(c.CredentialPath); os.IsNotExist(err) {
-		return fmt.Errorf("クレデンシャルファイルを読み取れません: %v", err)
+	if !FileExists(c.CredentialPath) {
+		return fmt.Errorf("クレデンシャルファイルをが存在しません: %s", c.CredentialPath)
 	}
 	return nil
 }

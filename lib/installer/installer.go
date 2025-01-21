@@ -3,9 +3,11 @@ package installer
 import (
 	"fmt"
 	"github.com/fetaro/gcal_forcerun_go/lib/common"
-	"github.com/fetaro/gcal_forcerun_go/lib/gcal_run"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strconv"
+	"time"
 )
 
 type Installer struct {
@@ -14,23 +16,32 @@ type Installer struct {
 func NewInstaller() *Installer {
 	return &Installer{}
 }
-func (i *Installer) ScanInput() (int, string) {
+func (i *Installer) ScanInput() *common.Config {
+	var err error
+
+	var credPath string
+	for {
+		credPath = PrintAndScanStdInput("GoogleカレンダーAPIのクレデンシャルパスを指定してください > ")
+		if !common.FileExists(credPath) {
+			fmt.Println("GoogleカレンダーAPIのクレデンシャルパスを指定してください。再度入力してください")
+		} else {
+			break
+		}
+	}
 
 	var browserApp string
 	for {
 		browserApp = PrintAndScanStdInput(fmt.Sprintf("ブラウザアプリケーションのパスを指定してください\nデフォルトは「%s」です。デフォルトで良い場合は何も入力せずにEnterを押してください\n> ", common.DefaultBrowserApp))
-		_, err := os.Stat(browserApp)
 		if browserApp == "" {
 			browserApp = common.DefaultBrowserApp
 			break
-		}
-		if os.IsNotExist(err) {
+		} else if !common.FileExists(browserApp) {
 			fmt.Println("ブラウザアプリケーションが存在しません。再度入力してください")
 		} else {
 			break
 		}
 	}
-	var err error
+
 	var minutesAgoStr string
 	var minutesAgo int
 	for {
@@ -47,11 +58,11 @@ func (i *Installer) ScanInput() (int, string) {
 			break
 		}
 	}
-	return minutesAgo, browserApp
+	return common.NewConfig(credPath, minutesAgo, browserApp)
 }
 
 func (i *Installer) Install(config *common.Config, appDir string) {
-	if _, err := os.Stat(appDir); os.IsNotExist(err) {
+	if !common.FileExists(appDir) {
 		err := os.MkdirAll(appDir, 0755)
 		if err != nil {
 			panic(fmt.Errorf("ディレクトリを作成できませんでした: %v\n", err))
@@ -59,19 +70,7 @@ func (i *Installer) Install(config *common.Config, appDir string) {
 		fmt.Printf("インストール先ディレクトリを作成しました: %s\n", appDir)
 	} else {
 		fmt.Printf("インストール先ディレクトリが既に存在します。: %s\n", appDir)
-		if PrintAndScanStdInput("中身を空にして、インストールしますか？ (y/n) > ") == "y" {
-			// installDirの中身を空にする
-			err := os.RemoveAll(appDir)
-			if err != nil {
-				panic(fmt.Errorf("ディレクトリを空にできませんでした: %v\n", err))
-			}
-			err = os.MkdirAll(appDir, 0755)
-			if err != nil {
-				panic(fmt.Errorf("ディレクトリを作成できませんでした: %v\n", err))
-			}
-			fmt.Printf("ディレクトリを空にして再作成しました: %s\n", appDir)
-
-		} else {
+		if PrintAndScanStdInput("ここにインストールしますか？ (y/n) > ") != "y" {
 			fmt.Println("インストールを中止します")
 			os.Exit(1)
 		}
@@ -82,33 +81,58 @@ func (i *Installer) Install(config *common.Config, appDir string) {
 		panic(fmt.Errorf("設定の保存に失敗しました: %v\n", err))
 	}
 	// ツールのダウンロード
-	fmt.Println("ツールをダウンロードし、インストールディレクトリに展開します")
-	latestVersion, err := NewGithubService().GetLatestVersion()
-	if err != nil {
-		panic(err)
-	}
-	NewDownloader().DownloadAndCopy(latestVersion, appDir)
+	fmt.Println("ツールを、インストールディレクトリにコピーし、実行権限を付与します")
+	// ./gcal_run, ./installerをコピー
+	for _, binFileName := range []string{"gcal_run", "installer"} {
+		if !common.FileExists(binFileName) {
+			panic(fmt.Errorf("installerのファイルの隣にあるはずの実行ファイル「gcal_run」が見つかりません: %s\n", err))
+		}
+		// ファイルをコピー
+		dstBinFile := filepath.Join(appDir, binFileName)
+		fmt.Printf("バイナリファイル %s を %s にコピーします\n", binFileName, dstBinFile)
+		err = CopyFile(binFileName, dstBinFile)
 
+		// バイナリファイルに実行権限を付与
+		fmt.Printf("バイナリファイル %s に実行権限を付与します\n", dstBinFile)
+		stdOutErr, err := exec.Command("chmod", "+x", dstBinFile).CombinedOutput()
+		fmt.Println(string(stdOutErr))
+		if err != nil {
+			panic(err)
+		}
+	}
 	// plistファイルを作成
-	err = NewDaemonCtrl().CreatePListFile()
+	err = NewDaemonCtrl().CreatePListFile(true)
 	if err != nil {
 		panic(err)
 	}
 
 	// トークンの取得
 	tokenPath := common.GetTokenPath(appDir)
-	_, err = gcal_run.NewOAuthTokenGetter().GetAndSaveToken(config.CredentialPath, tokenPath, config.BrowserApp)
+	_, err = NewOAuthTokenGetter(true).GetAndSaveToken(config.CredentialPath, tokenPath, config.BrowserApp)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf(`
-============================================
-インストールが完了しました。
+	fmt.Println("インストールが完了しました。")
 
-インストールディレクトリ : %s
-常駐プロセス(LaunchAgents)ファイル : %s
-`, appDir, NewDaemonCtrl().GetPListPath())
-
+	if PrintAndScanStdInput("常駐プロセスを起動しますか？ (y/n) > ") == "y" {
+		daemonCtrl := NewDaemonCtrl()
+		err := daemonCtrl.StartDaemon()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("常駐プロセスを起動しました")
+		fmt.Println("2秒待ちます")
+		time.Sleep(2 * time.Second)
+		isRunning, err := daemonCtrl.IsDaemonRunning()
+		if err != nil {
+			panic(err)
+		}
+		if !isRunning {
+			panic("常駐プロセスが起動していません")
+		}
+		fmt.Println("常駐プロセスのログは以下のコマンドで確認できます")
+		fmt.Printf("tail -f %s\n", common.GetLogPath(appDir))
+	}
 	return
 }

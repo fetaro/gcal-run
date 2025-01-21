@@ -53,7 +53,7 @@ Google Calendar APIのJSON形式のクレデンシャルファイルを取得し
 # 解凍したディレクトリに移動
 cd 
 # インストラーの実行
-./installer install -c (クレデンシャルファイルのパス)
+./installer install
 ```
 
 これで `${HOME}/.gcal_run/` に必要なファイルがインストールされます。
