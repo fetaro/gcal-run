@@ -2,10 +2,12 @@ package installer
 
 import (
 	"fmt"
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Updator struct {
@@ -71,6 +73,17 @@ func (u *Updator) Update(installDir string) {
 				panic(fmt.Errorf("常駐プロセスの起動に失敗しました。マニュアルに従って手動で起動してください: %v\n", err))
 			}
 			fmt.Println("常駐プロセスを再起動しました")
+			fmt.Println("2秒待ちます")
+			time.Sleep(2 * time.Second)
+			isRunning, err := daemonCtrl.IsDaemonRunning()
+			if err != nil {
+				panic(err)
+			}
+			if !isRunning {
+				panic("常駐プロセスが起動していません")
+			}
+			fmt.Println("常駐プロセスのログは以下のコマンドで確認できます")
+			fmt.Printf("tail -f %s\n", common.GetLogPath(common.GetAppDir()))
 			fmt.Println("アップデート正常終了")
 		} else {
 			fmt.Println("中止しました")
