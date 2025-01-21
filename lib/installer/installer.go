@@ -131,6 +131,7 @@ func (i *Installer) Install(config *common.Config, appDir string) {
 		if !isRunning {
 			panic("常駐プロセスが起動していません")
 		}
+		fmt.Println("常駐プロセスが動いていることを確認しました")
 		fmt.Println("常駐プロセスのログは以下のコマンドで確認できます")
 		fmt.Printf("tail -f %s\n", common.GetLogPath(appDir))
 	}
