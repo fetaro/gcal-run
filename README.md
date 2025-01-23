@@ -38,8 +38,10 @@ Web会議の開始時間を忘れがちな人にオススメです。
 
 ### 1. GoogleAPIのクレデンシャルファイルの取得
 
-[このマニュアル](https://github.com/fetaro/gcal-run/wiki/how_to_get_google_calendar_api_credential_file)に従い
+[このマニュアル](https://github.com/fetaro/gcal-run/wiki/how_to_get_google_calendar_api_credential_file)などを参考にして
 Google Calendar APIのJSON形式のクレデンシャルファイルを取得してください。
+
+社内の方は私に依頼いただいたら用意できます。
 
 ### 2. ツールのインストール
 
@@ -108,11 +110,6 @@ launchctl unload ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
 `${HOME}/.gcal_run/config.json`を編集し、
 再度常駐プロセスを起動してください。
 
-#### アップデート
-インストールディレクトリで以下を実行
-```text
-./installer update 
-```
 
 #### アンインストール
 
@@ -120,6 +117,14 @@ launchctl unload ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
 ```text
 ./installer uninstall 
 ```
+
+
+#### アップデート
+インストールディレクトリで以下を実行
+```text
+./installer update 
+```
+
 
 ### 手動で実行して使う場合
 
@@ -135,4 +140,37 @@ cd ${HOME}/.gcal_run
 
 ctrl+cをおしてプログラムを停止してください。
 
+## v1.x.xからv2.x.xへのアップデート手順
 
+v1.x.x系はuninstallコマンドがないので、手動でのツールの削除が必要です。
+
+以下の手順でv1.x.xのツールを削除してください。
+```text
+# 常駐プロセスの停止
+launchctl unload ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
+
+# 常駐プロセス定義ファイルの削除
+rm ${HOME}/Library/LaunchAgents/com.github.fetaro.gcal_run.plist
+
+# ツールの削除
+# デフォルトのインストール先は ${HOME}/.gcal_run です
+rm -rf (インストールディレクトリ)
+
+```
+
+[ダウンロードページ](https://github.com/fetaro/gcal-run/releases)から最新のバイナリをダウンロードしてください。
+
+* CPUがAppleシリコンの場合(M1など)は `gcal-run_darwin_arm64_x.x.x.tar.gz`
+* CPUがIntelの場合は `gcal-run_darwin_amd64_x.x.x.tar.gz`
+
+解凍して、以下のコマンドでインストーラを実行してください。
+```text
+# 解凍したディレクトリに移動
+cd 
+# インストラーの実行
+./installer install
+```
+
+## その他
+
+- [リリースノート](RELEASE_NOTE.md)
