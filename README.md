@@ -50,13 +50,28 @@ Google Calendar APIのJSON形式のクレデンシャルファイルを取得し
 * CPUがAppleシリコンの場合(M1など)は `gcal-run_darwin_arm64_x.x.x.tar.gz`
 * CPUがIntelの場合は `gcal-run_darwin_amd64_x.x.x.tar.gz`
 
-解凍して、以下のコマンドでインストーラを実行してください。
-```text
-# 解凍したディレクトリに移動
-cd 
-# インストラーの実行
+ダウンロードしたファイルを解凍してください。Finderでダブルクリックすれば解答できます。
+
+ターミナルを起動してください。
+
+解答したディレクトリに移動してください
+```bash
+cd (ダウンロードしたディレクトリ)
+```
+
+例：ダウンロードしたディレクトリが「ダウンロード/gcal-run_darwin_amd64_v2.0.5」の場合
+
+```bash
+cd ダウンロード/gcal-run_darwin_amd64_v2.0.5
+```
+
+以下のコマンドでインストラーを実行してください
+
+```bash
 ./installer install
 ```
+
+指示に従ってインストールしてください
 
 これで `${HOME}/.gcal_run/` に必要なファイルがインストールされます。
 
