@@ -191,6 +191,10 @@ cd
 ./installer install
 ```
 
+## インストールに失敗する場合
+
+[よくある質問](https://github.com/fetaro/gcal-run/wiki)を御覧ください
+
 ## その他
 
 - [リリースノート](RELEASE_NOTE.md)
