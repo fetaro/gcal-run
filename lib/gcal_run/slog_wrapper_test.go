@@ -8,7 +8,8 @@ import (
 )
 
 func TestGetSloggerWrapper(t *testing.T) {
-	logger := GetLogger()
+	logger, err := GetLogger("")
+	assert.NoError(t, err)
 	logger.Debug("debug %s", "test")
 	logger.Info("info %s", "test")
 	logger.Warn("warn %s", "test")
@@ -17,7 +18,8 @@ func TestGetSloggerWrapper(t *testing.T) {
 }
 func TestGetSloggerWrapperDebug(t *testing.T) {
 	os.Setenv("DEBUG", "1")
-	logger := GetLogger()
+	logger, err := GetLogger("")
+	assert.NoError(t, err)
 	logger.Debug("debug %s", "test")
 	logger.Info("info %s", "test")
 	logger.Warn("warn %s", "test")

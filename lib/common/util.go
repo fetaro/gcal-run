@@ -13,7 +13,7 @@ func FileExists(filename string) bool {
 }
 
 func OpenUrl(browserApp, url string) error {
-	if runtime.GOOS == "windows" {
+	if IsWindows() {
 		err := exec.Command(browserApp, url).Run()
 		if err != nil {
 			return fmt.Errorf("failed to open event url: %v", err)
@@ -26,4 +26,8 @@ func OpenUrl(browserApp, url string) error {
 		}
 		return err
 	}
+}
+
+func IsWindows() bool {
+	return runtime.GOOS == "windows"
 }

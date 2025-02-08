@@ -29,7 +29,10 @@ func NewOAuthTokenGetter(confirmOverwrite bool) *OAuthTokenGetter {
 }
 
 func (o *OAuthTokenGetter) saveToken(file string, token *oauth2.Token) error {
-	logger := gcal_run.GetLogger()
+	logger, err := gcal_run.GetLogger("")
+	if err != nil {
+		return err
+	}
 	if common.FileExists(file) {
 		if PrintAndScanStdInput("トークンファイルが既に存在します。上書きしますか？ (y/n) > ") != "y" {
 			logger.Info("トークンファイルの上書きをキャンセルしました。")
@@ -47,7 +50,10 @@ func (o *OAuthTokenGetter) saveToken(file string, token *oauth2.Token) error {
 }
 
 func (o *OAuthTokenGetter) getTokenFromWeb(credentialPath string, browserApp string) (*oauth2.Token, error) {
-	logger := gcal_run.GetLogger()
+	logger, err := gcal_run.GetLogger("")
+	if err != nil {
+		return nil, err
+	}
 	ctx := context.Background()
 	b, err := os.ReadFile(credentialPath)
 	if err != nil {

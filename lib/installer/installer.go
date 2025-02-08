@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"time"
 )
@@ -85,7 +84,7 @@ func (i *Installer) Install(config *common.Config, appDir string) {
 	fmt.Println("ツールを、インストールディレクトリにコピーし、実行権限を付与します")
 	// ./gcal_run, ./installerをコピー
 	var binPaths []string
-	if runtime.GOOS == "windows" {
+	if common.IsWindows() {
 		binPaths = []string{"gcal_run.exe", "installer.exe"}
 	} else {
 		binPaths = []string{"gcal_run", "installer"}
@@ -99,7 +98,7 @@ func (i *Installer) Install(config *common.Config, appDir string) {
 		fmt.Printf("バイナリファイル %s を %s にコピーします\n", binFileName, dstBinFile)
 		err = CopyFile(binFileName, dstBinFile)
 
-		if runtime.GOOS != "windows" {
+		if !common.IsWindows() {
 			// バイナリファイルに実行権限を付与
 			fmt.Printf("バイナリファイル %s に実行権限を付与します\n", dstBinFile)
 			stdOutErr, err := exec.Command("chmod", "+x", dstBinFile).CombinedOutput()
@@ -109,7 +108,7 @@ func (i *Installer) Install(config *common.Config, appDir string) {
 			}
 		}
 	}
-	if runtime.GOOS != "windows" {
+	if !common.IsWindows() {
 		// plistファイルを作成
 		err = NewDaemonCtrl().CreatePListFile(true)
 		if err != nil {

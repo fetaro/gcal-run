@@ -21,7 +21,10 @@ func NewRunner(config *common.Config, appDir string) *Runner {
 }
 
 func (r *Runner) Run() error {
-	logger := GetLogger()
+	logger, err := GetLogger(common.GetLogPath(common.GetAppDir()))
+	if err != nil {
+		return err
+	}
 	calendar := NewCalendar(r.Config.CredentialPath, common.GetTokenPath(r.AppDir))
 
 	events, err := calendar.GetCalendarEvents(time.Now())
@@ -72,11 +75,15 @@ func (r *Runner) Run() error {
 	return nil
 }
 
-func (r *Runner) CleanUp() {
-	err := r.EventIDStore.Clear()
-	logger := GetLogger()
+func (r *Runner) CleanUp() error {
+	logger, err := GetLogger(common.GetLogPath(common.GetAppDir()))
 	if err != nil {
-		logger.Error("failed to clear event id store: %v", err)
+		return err
+	}
+	err = r.EventIDStore.Clear()
+	if err != nil {
+		return fmt.Errorf("failed to clear event id store: %v", err)
 	}
 	logger.Debug("clean up event id store")
+	return nil
 }
