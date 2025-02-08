@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	DefaultBrowserApp = "/Applications/Google Chrome.app"
+	//DefaultBrowserApp = "/Applications/Google Chrome.app"
+	DefaultBrowserApp = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
 	DefaultMinutesAgo = 2
 )
 

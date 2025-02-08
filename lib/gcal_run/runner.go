@@ -3,7 +3,6 @@ package gcal_run
 import (
 	"fmt"
 	"github.com/fetaro/gcal_forcerun_go/lib/common"
-	"os/exec"
 	"time"
 )
 
@@ -53,7 +52,7 @@ func (r *Runner) Run() error {
 				logger.Debug("\"%s\" は既に開始済み", event)
 			} else {
 				logger.Info("\"%s\" は%d分%d秒後に開始なので、TV会議開始", event, timeToStartSec/60, timeToStartSec%60)
-				err := exec.Command("open", "-a", r.Config.BrowserApp, event.URL).Run()
+				err := common.OpenUrl(r.Config.BrowserApp, event.URL)
 				if err != nil {
 					return fmt.Errorf("failed to open event url: %v", err)
 				}

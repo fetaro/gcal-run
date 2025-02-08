@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"os/exec"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -84,7 +83,7 @@ func (o *OAuthTokenGetter) getTokenFromWeb(credentialPath string, browserApp str
 
 	config.RedirectURL = ts.URL
 	authURL := config.AuthCodeURL(randState)
-	go OpenUrl(browserApp, authURL)
+	common.OpenUrl(browserApp, authURL)
 	fmt.Printf("ブラウザを使ってこのアプリケーションを認証してください。URL = %s\n", authURL)
 	code := <-ch
 	token, err := config.Exchange(ctx, code)
@@ -92,14 +91,6 @@ func (o *OAuthTokenGetter) getTokenFromWeb(credentialPath string, browserApp str
 		log.Fatalf("Token exchange error: %v", err)
 	}
 	return token, nil
-}
-
-func OpenUrl(browserApp, url string) error {
-	err := exec.Command("open", "-a", browserApp, url).Run()
-	if err != nil {
-		return fmt.Errorf("failed to open event url: %v", err)
-	}
-	return nil
 }
 
 func (o *OAuthTokenGetter) GetAndSaveToken(credentialPath string, tokenFilePath string, browserApp string) (*oauth2.Token, error) {

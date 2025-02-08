@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"time"
 )
@@ -83,7 +84,13 @@ func (i *Installer) Install(config *common.Config, appDir string) {
 	// ツールのダウンロード
 	fmt.Println("ツールを、インストールディレクトリにコピーし、実行権限を付与します")
 	// ./gcal_run, ./installerをコピー
-	for _, binFileName := range []string{"gcal_run", "installer"} {
+	var binPaths []string
+	if runtime.GOOS == "windows" {
+		binPaths = []string{"gcal_run.exe", "installer.exe"}
+	} else {
+		binPaths = []string{"gcal_run", "installer"}
+	}
+	for _, binFileName := range binPaths {
 		if !common.FileExists(binFileName) {
 			panic(fmt.Errorf("installerのファイルの隣にあるはずの実行ファイル「gcal_run」が見つかりません: %s\n", err))
 		}
@@ -92,18 +99,22 @@ func (i *Installer) Install(config *common.Config, appDir string) {
 		fmt.Printf("バイナリファイル %s を %s にコピーします\n", binFileName, dstBinFile)
 		err = CopyFile(binFileName, dstBinFile)
 
-		// バイナリファイルに実行権限を付与
-		fmt.Printf("バイナリファイル %s に実行権限を付与します\n", dstBinFile)
-		stdOutErr, err := exec.Command("chmod", "+x", dstBinFile).CombinedOutput()
-		fmt.Println(string(stdOutErr))
+		if runtime.GOOS != "windows" {
+			// バイナリファイルに実行権限を付与
+			fmt.Printf("バイナリファイル %s に実行権限を付与します\n", dstBinFile)
+			stdOutErr, err := exec.Command("chmod", "+x", dstBinFile).CombinedOutput()
+			fmt.Println(string(stdOutErr))
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+	if runtime.GOOS != "windows" {
+		// plistファイルを作成
+		err = NewDaemonCtrl().CreatePListFile(true)
 		if err != nil {
 			panic(err)
 		}
-	}
-	// plistファイルを作成
-	err = NewDaemonCtrl().CreatePListFile(true)
-	if err != nil {
-		panic(err)
 	}
 
 	// トークンの取得
