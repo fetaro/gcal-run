@@ -89,25 +89,31 @@ func (i *Installer) Install(config *common.Config, appDir string) error {
 
 	// ツールのダウンロード
 	fmt.Println("ツールをインストールディレクトリにコピーします")
-	// ./gcal_run, ./installerをコピー
-	var binPaths []string
+	var filePaths []string
 	if common.IsWindows() {
-		binPaths = []string{"gcal_run.exe", "installer.exe"}
+		filePaths = []string{
+			"gcal_run.exe",
+			"gcal_run.ico",
+			"installer.exe",
+			"install_startup.ps1",
+			"install_desktop_shortcut.ps1"}
 	} else {
-		binPaths = []string{"gcal_run", "installer"}
+		filePaths = []string{
+			"gcal_run",
+			"installer"}
 	}
-	for _, binFileName := range binPaths {
-		if !common.FileExists(binFileName) {
-			return fmt.Errorf("実行ファイル「%s」が見つかりません: %s\n", binFileName, err)
+	for _, fileName := range filePaths {
+		if !common.FileExists(fileName) {
+			return fmt.Errorf("実行ファイル「%s」が見つかりません: %s\n", fileName, err)
 		}
 		// ファイルをコピー
-		dstBinFile := filepath.Join(appDir, binFileName)
-		fmt.Printf("バイナリファイル %s を %s にコピーします\n", binFileName, dstBinFile)
-		err = CopyFile(binFileName, dstBinFile)
+		dstBinFile := filepath.Join(appDir, fileName)
+		fmt.Printf("ファイル %s を %s にコピーします\n", fileName, dstBinFile)
+		err = CopyFile(fileName, dstBinFile)
 
 		if !common.IsWindows() {
 			// バイナリファイルに実行権限を付与
-			fmt.Printf("バイナリファイル %s に実行権限を付与します\n", dstBinFile)
+			fmt.Printf("ファイル %s に実行権限を付与します\n", dstBinFile)
 			stdOutErr, err := exec.Command("chmod", "+x", dstBinFile).CombinedOutput()
 			fmt.Println(string(stdOutErr))
 			if err != nil {
@@ -137,9 +143,9 @@ func (i *Installer) Install(config *common.Config, appDir string) error {
 		fmt.Println("プログラムを動かすには %s をダブルクリックして起動してください", common.GetBinPath(appDir))
 		fmt.Println("")
 		powershellPath := path.Join(common.GetAppDir(), "register_startup.ps1")
-		fmt.Printf("Windowsを起動した後に自動でプログラムを起動するように設定したい場合は\n"+
-			"登録プログラムである %s を右クリックし、\n"+
-			"「PowerShellで実行」を実行してください\n", powershellPath)
+		if PrintAndScanStdInput("デスクトップにショートカットを作りますか？ (y/n) > ") == "y" {
+
+		}
 	} else {
 		if PrintAndScanStdInput("Macの常駐プロセスを起動しますか？ (y/n) > ") == "y" {
 			daemonCtrl := NewDaemonCtrl()
