@@ -22,3 +22,7 @@ jobs:
       - name: unit_test
         run: |
           go test -v ./lib/gcal_run/...
+
+      - name: build_test
+        run: |
+          bash build.sh v0.0.0

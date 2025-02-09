@@ -17,3 +17,8 @@ func TestFileExists(t *testing.T) {
 	assert.False(t, FileExists("/does_not_exist_file"))
 
 }
+
+func TestOpenUrl(t *testing.T) {
+	err := OpenUrl(DefaultBrowserApp, "https://www.google.com")
+	assert.NoError(t, err)
+}

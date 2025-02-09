@@ -26,7 +26,10 @@ func main() {
 		panic(err)
 	}
 	runner := gcal_run.NewRunner(config, common.GetAppDir())
-	logger := gcal_run.GetLogger()
+	logger, err := gcal_run.GetLogger(common.GetLogPath(common.GetAppDir()))
+	if err != nil {
+		panic(err)
+	}
 	logger.Info("バージョン: %s", version)
 	logger.Info("設定ファイルパス: %s", *configPath)
 	logger.Info(config.String())

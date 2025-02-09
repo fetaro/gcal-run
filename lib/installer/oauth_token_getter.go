@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"os/exec"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -30,7 +29,10 @@ func NewOAuthTokenGetter(confirmOverwrite bool) *OAuthTokenGetter {
 }
 
 func (o *OAuthTokenGetter) saveToken(file string, token *oauth2.Token) error {
-	logger := gcal_run.GetLogger()
+	logger, err := gcal_run.GetLogger("")
+	if err != nil {
+		return err
+	}
 	if common.FileExists(file) {
 		if PrintAndScanStdInput("トークンファイルが既に存在します。上書きしますか？ (y/n) > ") != "y" {
 			logger.Info("トークンファイルの上書きをキャンセルしました。")
@@ -48,7 +50,10 @@ func (o *OAuthTokenGetter) saveToken(file string, token *oauth2.Token) error {
 }
 
 func (o *OAuthTokenGetter) getTokenFromWeb(credentialPath string, browserApp string) (*oauth2.Token, error) {
-	logger := gcal_run.GetLogger()
+	logger, err := gcal_run.GetLogger("")
+	if err != nil {
+		return nil, err
+	}
 	ctx := context.Background()
 	b, err := os.ReadFile(credentialPath)
 	if err != nil {
@@ -84,7 +89,7 @@ func (o *OAuthTokenGetter) getTokenFromWeb(credentialPath string, browserApp str
 
 	config.RedirectURL = ts.URL
 	authURL := config.AuthCodeURL(randState)
-	go OpenUrl(browserApp, authURL)
+	common.OpenUrl(browserApp, authURL)
 	fmt.Printf("ブラウザを使ってこのアプリケーションを認証してください。URL = %s\n", authURL)
 	code := <-ch
 	token, err := config.Exchange(ctx, code)
@@ -92,14 +97,6 @@ func (o *OAuthTokenGetter) getTokenFromWeb(credentialPath string, browserApp str
 		log.Fatalf("Token exchange error: %v", err)
 	}
 	return token, nil
-}
-
-func OpenUrl(browserApp, url string) error {
-	err := exec.Command("open", "-a", browserApp, url).Run()
-	if err != nil {
-		return fmt.Errorf("failed to open event url: %v", err)
-	}
-	return nil
 }
 
 func (o *OAuthTokenGetter) GetAndSaveToken(credentialPath string, tokenFilePath string, browserApp string) (*oauth2.Token, error) {

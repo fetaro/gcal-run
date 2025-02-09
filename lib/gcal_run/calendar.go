@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"os"
 	"time"
 
@@ -30,7 +31,10 @@ func NewCalendar(credentialPath string, oauthTokenPath string) *GCal {
 }
 
 func (g *GCal) GetCalendarEvents(basisTime time.Time) (*calendar.Events, error) {
-	logger := GetLogger()
+	logger, err := GetLogger(common.GetLogPath(common.GetAppDir()))
+	if err != nil {
+		return nil, err
+	}
 	ctx := context.Background()
 	b, err := os.ReadFile(g.CredentialPath)
 	if err != nil {

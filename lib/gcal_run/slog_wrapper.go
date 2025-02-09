@@ -2,6 +2,7 @@ package gcal_run
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 )
@@ -31,7 +32,7 @@ func (s *SLogWrapper) Error(format string, a ...any) {
 
 var loggerSingleton *SLogWrapper
 
-func GetLogger() *SLogWrapper {
+func GetLogger(logFilePath string) (*SLogWrapper, error) {
 	isDebug := os.Getenv("DEBUG")
 	var logLevel slog.Level
 	if isDebug == "" {
@@ -40,11 +41,21 @@ func GetLogger() *SLogWrapper {
 		logLevel = slog.LevelDebug
 	}
 	if loggerSingleton != nil {
-		return loggerSingleton
+		return loggerSingleton, nil
 	} else {
-		handler := NewSimpleHandler(os.Stdout, logLevel)
+		var writer io.Writer
+		if logFilePath != "" {
+			logFile, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+			if err != nil {
+				return nil, err
+			}
+			writer = io.MultiWriter(os.Stdout, logFile)
+		} else {
+			writer = os.Stdout
+		}
+		handler := NewSimpleHandler(writer, logLevel)
 		l := NewSLogWrapper(slog.New(handler))
 		loggerSingleton = l
-		return l
+		return l, nil
 	}
 }
