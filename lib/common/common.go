@@ -10,6 +10,7 @@ const (
 	DefaultBrowserApp  = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
 	DefaultMinutesAgo  = 2
 	PoolingIntervalSec = 30
+	ToolName           = "GoogleカレンダーTV会議強制起動ツール"
 )
 
 func GetAppDir() string {

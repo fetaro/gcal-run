@@ -14,7 +14,7 @@ import (
 var version string // ビルドスクリプトで埋め込む
 var poolingIntervalSec = 30
 var (
-	app        = kingpin.New("gcal_run", "gcal_run: GoogleカレンダーTV会議強制起動ツール")
+	app        = kingpin.New("gcal_run", "gcal_run: "+common.ToolName)
 	configPath = app.Flag("config", "設定ファイルのパス").Short('c').Default(common.GetConfigPath(common.GetAppDir())).String()
 )
 

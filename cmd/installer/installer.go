@@ -1,45 +1,55 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"github.com/alecthomas/kingpin/v2"
 	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"github.com/fetaro/gcal_forcerun_go/lib/installer"
 	"os"
 )
 
 var version string // ビルドスクリプトで埋め込む
-var (
-	app = kingpin.New("installer", "GoogleカレンダーTV会議強制起動ツールのインストラー")
-
-	installCommand = app.Command("install", "インストール")
-
-	updateCommand = app.Command("update", "アップデート")
-
-	uninstallCommand = app.Command("uninstall", "アンインストール")
-)
 
 func main() {
-	app.Version(version)
-	appDir := common.GetAppDir()
-	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
-	case installCommand.FullCommand():
-		inst := installer.NewInstaller()
-		config := inst.ScanInput()
-		// インストールする
-		inst.Install(config, appDir)
+	fmt.Println("------------------------------------------------")
+	fmt.Println(common.ToolName + "インストラ―")
+	fmt.Println("バージョン: " + version)
+	fmt.Println("------------------------------------------------")
 
-	case updateCommand.FullCommand():
-		if !common.FileExists(appDir) {
-			fmt.Printf("インストールしたディレクトリが見つかりません. 探したパス: %s\n", appDir)
-			os.Exit(1)
+	var err error
+
+	appDir := common.GetAppDir()
+	if !common.FileExists(appDir) {
+		fmt.Println(common.ToolName + "はまだインストールされていません")
+		yOrN := installer.PrintAndScanStdInput("ツールをインストールしますか？ (y/n) > ")
+		if yOrN == "y" {
+			i := installer.NewInstaller()
+			config := i.ScanUserInput()
+			err = i.Install(config, appDir)
+		} else {
+			fmt.Println("インストールをキャンセルしました")
 		}
-		installer.NewUpdator().Update(appDir)
-	case uninstallCommand.FullCommand():
-		if !common.FileExists(appDir) {
-			fmt.Printf("インストールしたディレクトリが見つかりません. 探したパス: %s\n", appDir)
-			os.Exit(1)
+	} else {
+		fmt.Println(common.ToolName + "が既にインストールされています。インストールディレクトリ=" + appDir)
+		commandNo := installer.PrintAndScanStdInput("実行できるコマンド\n " +
+			"[1] バージョンアップ\n " +
+			"[2] アンインストール\n " +
+			"実行したいコマンドの番号を指定してください > ")
+		switch commandNo {
+		case "1":
+			err = installer.NewUpdator().Update(appDir)
+		case "2":
+			err = installer.NewUninstaller().Uninstall(appDir)
+		default:
+			fmt.Println("無効なコマンドです")
+			fmt.Println("終了します")
 		}
-		installer.NewUninstaller().Uninstall(appDir)
 	}
+	if err != nil {
+		fmt.Printf("エラー発生: %v\n" + err.Error())
+	}
+	fmt.Println("")
+	fmt.Printf("終了するには何かキーを押してください > ")
+	scanner := bufio.NewScanner(os.Stdin) // 標準入力を受け付けるスキャナ
+	scanner.Scan()
 }

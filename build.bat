@@ -1,4 +1,4 @@
-set version=v0.0.2
+set version=v2.0.0
 set current_dir=%~dp0
 echo %current_dir%
 
