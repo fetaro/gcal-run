@@ -25,4 +25,4 @@ jobs:
 
       - name: build_test
         run: |
-          bash build.sh
+          bash build.sh v0.0.0
