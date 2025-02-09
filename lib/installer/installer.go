@@ -5,6 +5,7 @@ import (
 	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -28,12 +29,13 @@ func (i *Installer) ScanUserInput() *common.Config {
 			break
 		}
 	}
+	fmt.Println("")
 
 	var browserApp string
 	for {
-		browserApp = PrintAndScanStdInput(fmt.Sprintf("ブラウザアプリケーションのパスを指定してください\nデフォルトは「%s」です。デフォルトで良い場合は何も入力せずにEnterを押してください\n> ", common.DefaultBrowserApp))
+		browserApp = PrintAndScanStdInput(fmt.Sprintf("ブラウザアプリケーションのパスを指定してください\nデフォルトは「%s」です。デフォルトで良い場合は何も入力せずにEnterを押してください\n> ", common.GetDefaultBrowserApp()))
 		if browserApp == "" {
-			browserApp = common.DefaultBrowserApp
+			browserApp = common.GetDefaultBrowserApp()
 			break
 		} else if !common.FileExists(browserApp) {
 			fmt.Println("ブラウザアプリケーションが存在しません。再度入力してください")
@@ -41,6 +43,7 @@ func (i *Installer) ScanUserInput() *common.Config {
 			break
 		}
 	}
+	fmt.Println("")
 
 	var minutesAgoStr string
 	var minutesAgo int
@@ -58,6 +61,8 @@ func (i *Installer) ScanUserInput() *common.Config {
 			break
 		}
 	}
+	fmt.Println("")
+
 	return common.NewConfig(credPath, minutesAgo, browserApp)
 }
 
@@ -80,8 +85,10 @@ func (i *Installer) Install(config *common.Config, appDir string) error {
 	if err != nil {
 		return fmt.Errorf("設定の保存に失敗しました: %v\n", err)
 	}
+	fmt.Printf("設定ファイルを作成しました: %s\n", common.GetConfigPath(appDir))
+
 	// ツールのダウンロード
-	fmt.Println("ツールを、インストールディレクトリにコピーします")
+	fmt.Println("ツールをインストールディレクトリにコピーします")
 	// ./gcal_run, ./installerをコピー
 	var binPaths []string
 	if common.IsWindows() {
@@ -124,8 +131,16 @@ func (i *Installer) Install(config *common.Config, appDir string) error {
 	}
 
 	fmt.Println("インストールが完了しました。")
+	fmt.Println("")
 
-	if !common.IsWindows() {
+	if common.IsWindows() {
+		fmt.Println("プログラムを動かすには %s をダブルクリックして起動してください", common.GetBinPath(appDir))
+		fmt.Println("")
+		powershellPath := path.Join(common.GetAppDir(), "register_startup.ps1")
+		fmt.Printf("Windowsを起動した後に自動でプログラムを起動するように設定したい場合は\n"+
+			"登録プログラムである %s を右クリックし、\n"+
+			"「PowerShellで実行」を実行してください\n", powershellPath)
+	} else {
 		if PrintAndScanStdInput("Macの常駐プロセスを起動しますか？ (y/n) > ") == "y" {
 			daemonCtrl := NewDaemonCtrl()
 			err := daemonCtrl.StartDaemon()

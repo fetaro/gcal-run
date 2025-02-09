@@ -17,3 +17,5 @@ cd .\cmd\installer\
 go build  -ldflags "-X main.version=%version%" -o "%current_dir%\dist\gcal-run_windows_amd64_%version%\installer.exe"
 cd %current_dir%
 
+copy .\resource\gcal_run.ico         "%current_dir%\dist\gcal-run_windows_amd64_%version%\"
+copy .\resource\register_startup.ps1 "%current_dir%\dist\gcal-run_windows_amd64_%version%\"

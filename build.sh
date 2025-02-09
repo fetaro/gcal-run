@@ -35,8 +35,15 @@ for i in "${dataArray[@]}"; do
 
     echo "[ ${ARCH} ]"
     NAME="gcal-run_${GOOS}_${ARCH}_${VERSION}"
-    rm -rf "dist/${NAME}"
-    mkdir -p "dist/${NAME}"
+    TARGET_DIR="${SCRIPT_DIR}/dist/${NAME}"
+    rm -rf "${TARGET_DIR}"
+    mkdir -p "${TARGET_DIR}"
+
+    if [ "${GOOS}" = "windows" ]; then
+      # powershellのスクリプトをコピー
+      cp ${SCRIPT_DIR}/resource/register_startup.ps1 "${TARGET_DIR}"
+      cp ${SCRIPT_DIR}/resource/gcal_run.ico "${TARGET_DIR}"
+    fi
 
     for APP in "${APP_LIST[@]}"; do
         cd "${SCRIPT_DIR}/cmd/${APP}/"
@@ -48,7 +55,7 @@ for i in "${dataArray[@]}"; do
 
         GCO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} go build \
             -ldflags "-X main.version=${VERSION}" \
-            -o "${SCRIPT_DIR}/dist/${NAME}/${APP}"
+            -o "${TARGET_DIR}/${APP}"
 
         if [ "${GOOS}" = "windows" ]; then
             rm ${SCRIPT_DIR}/cmd/gcal_run/gcal_run.syso

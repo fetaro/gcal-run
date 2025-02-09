@@ -6,18 +6,22 @@ import (
 )
 
 const (
-	//DefaultBrowserApp = "/Applications/Google Chrome.app"
-	DefaultBrowserApp  = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
 	DefaultMinutesAgo  = 2
 	PoolingIntervalSec = 30
 	ToolName           = "GoogleカレンダーTV会議強制起動ツール"
 )
 
+func GetDefaultBrowserApp() string {
+	if IsWindows() {
+		return "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+	} else {
+		return "/Applications/Google Chrome.app"
+	}
+}
+
 func GetAppDir() string {
 	if IsWindows() {
-		return path.Join(os.Getenv("HOMEPATH"), ".gcal_run")
-		// TODO
-		//return "c:\\Users\\fetaro\\.gcal_run"
+		return path.Join(os.Getenv("APPDATA"), "gcal_run")
 	} else {
 		return path.Join(os.Getenv("HOME"), ".gcal_run")
 	}
@@ -27,7 +31,6 @@ func GetBinPath(appDir string) string {
 	return path.Join(appDir, "gcal_run")
 }
 func GetLogPath(appDir string) string {
-	//return "c:\\tmp\\gcal_run.log"
 	return path.Join(appDir, "gcal_run.log")
 }
 

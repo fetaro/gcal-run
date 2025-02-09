@@ -19,6 +19,6 @@ func TestFileExists(t *testing.T) {
 }
 
 func TestOpenUrl(t *testing.T) {
-	err := OpenUrl(DefaultBrowserApp, "https://www.google.com")
+	err := OpenUrl(GetDefaultBrowserApp(), "https://www.google.com")
 	assert.NoError(t, err)
 }
