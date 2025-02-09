@@ -54,5 +54,6 @@ func PrintAndScanStdInput(msg string) string {
 	fmt.Printf(msg)
 	scanner := bufio.NewScanner(os.Stdin) // 標準入力を受け付けるスキャナ
 	scanner.Scan()
+	fmt.Println("入力された文字列: ", scanner.Text())
 	return scanner.Text()
 }

@@ -45,7 +45,7 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload ARM64 Release Asset
+      - name: Upload Mac ARM64 Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GT }}
@@ -55,7 +55,7 @@ jobs:
           asset_name: gcal-run_darwin_arm64_${{ env.tag }}.tar.gz
           asset_content_type: application/gzip
 
-      - name: Upload AMD64 Release Asset
+      - name: Upload Mac AMD64 Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GT }}
@@ -63,4 +63,14 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./dist/gcal-run_darwin_amd64_${{ env.tag }}.tar.gz
           asset_name: gcal-run_darwin_amd64_${{ env.tag }}.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload Windows Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GT }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/gcal-run_windows_amd64_${{ env.tag }}.tar.gz
+          asset_name: gcal-run_windows_amd64_${{ env.tag }}.tar.gz
           asset_content_type: application/gzip

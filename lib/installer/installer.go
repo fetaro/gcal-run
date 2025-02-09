@@ -16,7 +16,7 @@ type Installer struct {
 func NewInstaller() *Installer {
 	return &Installer{}
 }
-func (i *Installer) ScanInput() *common.Config {
+func (i *Installer) ScanUserInput() *common.Config {
 	var err error
 
 	var credPath string
@@ -61,27 +61,27 @@ func (i *Installer) ScanInput() *common.Config {
 	return common.NewConfig(credPath, minutesAgo, browserApp)
 }
 
-func (i *Installer) Install(config *common.Config, appDir string) {
+func (i *Installer) Install(config *common.Config, appDir string) error {
 	if !common.FileExists(appDir) {
 		err := os.MkdirAll(appDir, 0755)
 		if err != nil {
-			panic(fmt.Errorf("ディレクトリを作成できませんでした: %v\n", err))
+			return fmt.Errorf("ディレクトリを作成できませんでした: %v\n", err)
 		}
 		fmt.Printf("インストール先ディレクトリを作成しました: %s\n", appDir)
 	} else {
 		fmt.Printf("インストール先ディレクトリが既に存在します。: %s\n", appDir)
 		if PrintAndScanStdInput("ここにインストールしますか？ (y/n) > ") != "y" {
-			fmt.Println("インストールを中止します")
-			os.Exit(1)
+			fmt.Println("入力された文字列が'y'ではないため、インストールを中止しました")
+			return nil
 		}
 	}
 	// 設定の保存
 	err := config.Save()
 	if err != nil {
-		panic(fmt.Errorf("設定の保存に失敗しました: %v\n", err))
+		return fmt.Errorf("設定の保存に失敗しました: %v\n", err)
 	}
 	// ツールのダウンロード
-	fmt.Println("ツールを、インストールディレクトリにコピーし、実行権限を付与します")
+	fmt.Println("ツールを、インストールディレクトリにコピーします")
 	// ./gcal_run, ./installerをコピー
 	var binPaths []string
 	if common.IsWindows() {
@@ -91,7 +91,7 @@ func (i *Installer) Install(config *common.Config, appDir string) {
 	}
 	for _, binFileName := range binPaths {
 		if !common.FileExists(binFileName) {
-			panic(fmt.Errorf("installerのファイルの隣にあるはずの実行ファイル「gcal_run」が見つかりません: %s\n", err))
+			return fmt.Errorf("実行ファイル「%s」が見つかりません: %s\n", binFileName, err)
 		}
 		// ファイルをコピー
 		dstBinFile := filepath.Join(appDir, binFileName)
@@ -104,7 +104,7 @@ func (i *Installer) Install(config *common.Config, appDir string) {
 			stdOutErr, err := exec.Command("chmod", "+x", dstBinFile).CombinedOutput()
 			fmt.Println(string(stdOutErr))
 			if err != nil {
-				panic(err)
+				return err
 			}
 		}
 	}
@@ -112,7 +112,7 @@ func (i *Installer) Install(config *common.Config, appDir string) {
 		// plistファイルを作成
 		err = NewDaemonCtrl().CreatePListFile(true)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 
@@ -120,30 +120,32 @@ func (i *Installer) Install(config *common.Config, appDir string) {
 	tokenPath := common.GetTokenPath(appDir)
 	_, err = NewOAuthTokenGetter(true).GetAndSaveToken(config.CredentialPath, tokenPath, config.BrowserApp)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	fmt.Println("インストールが完了しました。")
 
-	if PrintAndScanStdInput("常駐プロセスを起動しますか？ (y/n) > ") == "y" {
-		daemonCtrl := NewDaemonCtrl()
-		err := daemonCtrl.StartDaemon()
-		if err != nil {
-			panic(err)
+	if !common.IsWindows() {
+		if PrintAndScanStdInput("Macの常駐プロセスを起動しますか？ (y/n) > ") == "y" {
+			daemonCtrl := NewDaemonCtrl()
+			err := daemonCtrl.StartDaemon()
+			if err != nil {
+				return err
+			}
+			fmt.Println("常駐プロセスを起動しました")
+			fmt.Println("2秒待ちます")
+			time.Sleep(2 * time.Second)
+			isRunning, err := daemonCtrl.IsDaemonRunning()
+			if err != nil {
+				return err
+			}
+			if !isRunning {
+				return fmt.Errorf("常駐プロセスが起動していません")
+			}
+			fmt.Println("常駐プロセスが動いていることを確認しました")
+			fmt.Println("常駐プロセスのログは以下のコマンドで確認できます")
+			fmt.Printf("tail -f %s\n", common.GetLogPath(appDir))
 		}
-		fmt.Println("常駐プロセスを起動しました")
-		fmt.Println("2秒待ちます")
-		time.Sleep(2 * time.Second)
-		isRunning, err := daemonCtrl.IsDaemonRunning()
-		if err != nil {
-			panic(err)
-		}
-		if !isRunning {
-			panic("常駐プロセスが起動していません")
-		}
-		fmt.Println("常駐プロセスが動いていることを確認しました")
-		fmt.Println("常駐プロセスのログは以下のコマンドで確認できます")
-		fmt.Printf("tail -f %s\n", common.GetLogPath(appDir))
 	}
-	return
+	return nil
 }
