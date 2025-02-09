@@ -3,7 +3,7 @@ set current_dir=%~dp0
 echo %current_dir%
 
 rem copy icon file
-copy .\resorce\gcal_run.syso .\cmd\gcal_run\
+copy .\resource\gcal_run.syso .\cmd\gcal_run\
 
 rem build
 cd .\cmd\gcal_run\
