@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -17,7 +16,7 @@ type Installer struct {
 func NewInstaller() *Installer {
 	return &Installer{}
 }
-func (i *Installer) ScanUserInput() *common.Config {
+func (i *Installer) MakeConfigFromUserInput() *common.Config {
 	var err error
 
 	var credPath string
@@ -66,7 +65,12 @@ func (i *Installer) ScanUserInput() *common.Config {
 	return common.NewConfig(credPath, minutesAgo, browserApp)
 }
 
-func (i *Installer) Install(config *common.Config, appDir string) error {
+func (i *Installer) InstallFiles(config *common.Config, appDir string) error {
+	//実行しているディレクトリの正しさのチェック
+	if common.IsWindows() && !common.FileExists("gcal_run.exe") || !common.IsWindows() && !common.FileExists("gcal_run") {
+		return fmt.Errorf("インストラーのフォルダにあるべきファイルがありません。インストーラーを正しいディレクトリで実行してください")
+	}
+
 	if !common.FileExists(appDir) {
 		err := os.MkdirAll(appDir, 0755)
 		if err != nil {
@@ -87,39 +91,19 @@ func (i *Installer) Install(config *common.Config, appDir string) error {
 	}
 	fmt.Printf("設定ファイルを作成しました: %s\n", common.GetConfigPath(appDir))
 
-	// ツールのダウンロード
-	fmt.Println("ツールをインストールディレクトリにコピーします")
-	// ./gcal_run, ./installerをコピー
-	var binPaths []string
-	if common.IsWindows() {
-		binPaths = []string{"gcal_run.exe", "installer.exe"}
-	} else {
-		binPaths = []string{"gcal_run", "installer"}
-	}
-	for _, binFileName := range binPaths {
-		if !common.FileExists(binFileName) {
-			return fmt.Errorf("実行ファイル「%s」が見つかりません: %s\n", binFileName, err)
-		}
-		// ファイルをコピー
-		dstBinFile := filepath.Join(appDir, binFileName)
-		fmt.Printf("バイナリファイル %s を %s にコピーします\n", binFileName, dstBinFile)
-		err = CopyFile(binFileName, dstBinFile)
+	// ツールのコピー
+	fmt.Printf("ツールをインストールディレクトリにコピーします. \".\" -> \"%s\"\n", appDir)
+	CopyDir(".", appDir)
 
-		if !common.IsWindows() {
-			// バイナリファイルに実行権限を付与
-			fmt.Printf("バイナリファイル %s に実行権限を付与します\n", dstBinFile)
-			stdOutErr, err := exec.Command("chmod", "+x", dstBinFile).CombinedOutput()
-			fmt.Println(string(stdOutErr))
+	if !common.IsWindows() {
+		// バイナリファイルに実行権限を付与
+		for _, fileName := range []string{"gcal_run", "installer"} {
+			filePath := path.Join(appDir, fileName)
+			fmt.Printf("ファイル %s に実行権限を付与します\n", filePath)
+			err := exec.Command("chmod", "+x", filePath).Run()
 			if err != nil {
 				return err
 			}
-		}
-	}
-	if !common.IsWindows() {
-		// plistファイルを作成
-		err = NewDaemonCtrl().CreatePListFile(true)
-		if err != nil {
-			return err
 		}
 	}
 
@@ -133,34 +117,69 @@ func (i *Installer) Install(config *common.Config, appDir string) error {
 	fmt.Println("インストールが完了しました。")
 	fmt.Println("")
 
-	if common.IsWindows() {
-		fmt.Println("プログラムを動かすには %s をダブルクリックして起動してください", common.GetBinPath(appDir))
-		fmt.Println("")
-		powershellPath := path.Join(common.GetAppDir(), "register_startup.ps1")
-		fmt.Printf("Windowsを起動した後に自動でプログラムを起動するように設定したい場合は\n"+
-			"登録プログラムである %s を右クリックし、\n"+
-			"「PowerShellで実行」を実行してください\n", powershellPath)
-	} else {
-		if PrintAndScanStdInput("Macの常駐プロセスを起動しますか？ (y/n) > ") == "y" {
-			daemonCtrl := NewDaemonCtrl()
-			err := daemonCtrl.StartDaemon()
-			if err != nil {
-				return err
-			}
-			fmt.Println("常駐プロセスを起動しました")
-			fmt.Println("2秒待ちます")
-			time.Sleep(2 * time.Second)
-			isRunning, err := daemonCtrl.IsDaemonRunning()
-			if err != nil {
-				return err
-			}
-			if !isRunning {
-				return fmt.Errorf("常駐プロセスが起動していません")
-			}
-			fmt.Println("常駐プロセスが動いていることを確認しました")
-			fmt.Println("常駐プロセスのログは以下のコマンドで確認できます")
-			fmt.Printf("tail -f %s\n", common.GetLogPath(appDir))
+	return nil
+}
+
+func (i *Installer) StartAtWindows(appDir string) error {
+	fmt.Println("プログラムを動かすには %s をダブルクリックして起動してください", common.GetBinPath(appDir))
+	fmt.Println("")
+	if PrintAndScanStdInput("デスクトップにショートカットを作りますか？ (y/n) > ") == "y" {
+		out, err := exec.Command("cmd", "/c", "powershell.exe", path.Join(common.GetAppDir(), "install_desktop_shortcut.ps1")).CombinedOutput()
+		fmt.Println(string(out))
+		if err != nil {
+			return err
+		}
+	}
+	if PrintAndScanStdInput("自動で起動されるように、スタートアップに登録しますか？ (y/n) > ") == "y" {
+		out, err := exec.Command("cmd", "/c", "powershell.exe", path.Join(common.GetAppDir(), "install_startup.ps1")).CombinedOutput()
+		fmt.Println(string(out))
+		if err != nil {
+			return err
 		}
 	}
 	return nil
+}
+func (i *Installer) StartAtMac(appDir string) error {
+	var err error
+	if PrintAndScanStdInput("自動で起動されるように、Macの常駐プロセスを登録して起動しますか？ (y/n) > ") == "y" {
+
+		daemonCtrl := NewDaemonCtrl()
+		// plistファイルを作成
+		err = daemonCtrl.CreatePListFile(true)
+		if err != nil {
+			return err
+		}
+
+		err := daemonCtrl.StartDaemon()
+		if err != nil {
+			return err
+		}
+		fmt.Println("常駐プロセスを起動しました")
+		fmt.Println("2秒待ちます")
+		time.Sleep(2 * time.Second)
+		isRunning, err := daemonCtrl.IsDaemonRunning()
+		if err != nil {
+			return err
+		}
+		if !isRunning {
+			return fmt.Errorf("常駐プロセスが起動していません")
+		}
+		fmt.Println("常駐プロセスが動いていることを確認しました")
+		fmt.Println("常駐プロセスのログは以下のコマンドで確認できます")
+		fmt.Printf("tail -f %s\n", common.GetLogPath(appDir))
+	}
+	return nil
+}
+
+func (i *Installer) Install(appDir string) error {
+	config := i.MakeConfigFromUserInput()
+	err := i.InstallFiles(config, appDir)
+	if err != nil {
+		return err
+	}
+	if common.IsWindows() {
+		return i.StartAtWindows(appDir)
+	} else {
+		return i.StartAtMac(appDir)
+	}
 }
