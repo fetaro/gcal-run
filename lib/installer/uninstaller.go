@@ -24,7 +24,7 @@ func (u *Uninstaller) Uninstall(installDir string) error {
 			// 常駐プロセスファイルの削除
 			err = NewDaemonCtrl().DeletePListFile()
 			if err != nil {
-				return err
+				fmt.Printf("ファイルの削除に失敗しましたが続行します: %v\n", err)
 			}
 		}
 		// ファイルの削除

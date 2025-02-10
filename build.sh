@@ -33,23 +33,19 @@ for i in "${dataArray[@]}"; do
     GOOS=${data[0]}
     ARCH=${data[1]}
 
-    echo "[ ${ARCH} ]"
+    echo "========= ${ARCH} =========="
     NAME="gcal-run_${GOOS}_${ARCH}_${VERSION}"
     TARGET_DIR="${SCRIPT_DIR}/dist/${NAME}"
     rm -rf "${TARGET_DIR}"
     mkdir -p "${TARGET_DIR}"
 
-    if [ "${GOOS}" = "windows" ]; then
-      # powershellのスクリプトをコピー
-      cp ${SCRIPT_DIR}/resource/register_startup.ps1 "${TARGET_DIR}"
-      cp ${SCRIPT_DIR}/resource/gcal_run.ico "${TARGET_DIR}"
-    fi
-
+    # goのビルド
     for APP in "${APP_LIST[@]}"; do
         cd "${SCRIPT_DIR}/cmd/${APP}/"
         if [ "${GOOS}" = "windows" ]; then
             # Windowsの場合はアイコンファイルを埋め込む
-            cp ${SCRIPT_DIR}/resource/gcal_run.syso ${SCRIPT_DIR}/cmd/gcal_run/
+            cp ${SCRIPT_DIR}/resource/build/gcal_run.syso ${SCRIPT_DIR}/cmd/gcal_run/
+            # 拡張子を.exeに変更
             APP="${APP}.exe"
         fi
 
@@ -58,10 +54,17 @@ for i in "${dataArray[@]}"; do
             -o "${TARGET_DIR}/${APP}"
 
         if [ "${GOOS}" = "windows" ]; then
+            # アイコンファイルを削除
             rm ${SCRIPT_DIR}/cmd/gcal_run/gcal_run.syso
         fi
     done
 
+    if [ "${GOOS}" = "windows" ]; then
+      # Windowsの場合はインストールに必要な資材や、ファイルをコピー
+      cp ${SCRIPT_DIR}/resource/distribute/* "${TARGET_DIR}"
+    fi
+
+    # アーカイブ
     cd "${SCRIPT_DIR}/dist"
     tar zcvf ${NAME}.tar.gz ${NAME}
 done
