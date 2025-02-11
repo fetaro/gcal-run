@@ -124,15 +124,15 @@ func (i *Installer) StartAtWindows(appDir string) error {
 	fmt.Println("プログラムを動かすには %s をダブルクリックして起動してください", common.GetBinPath(appDir))
 	fmt.Println("")
 	if PrintAndScanStdInput("デスクトップにショートカットを作りますか？ (y/n) > ") == "y" {
-		out, err := exec.Command("cmd", "/c", "powershell.exe", path.Join(common.GetAppDir(), "install_shortcut.ps1", "desktop")).CombinedOutput()
-		fmt.Println(string(out))
+		out, err := exec.Command("cmd", "/c", "powershell.exe", "-File", path.Join(common.GetAppDir(), "install_shortcut.ps1"), "desktop").CombinedOutput()
+		fmt.Println(common.SJisToUtf8(string(out)))
 		if err != nil {
 			return err
 		}
 	}
 	if PrintAndScanStdInput("自動で起動されるように、スタートアップに登録しますか？ (y/n) > ") == "y" {
-		out, err := exec.Command("cmd", "/c", "powershell.exe", path.Join(common.GetAppDir(), "install_shortcut.ps1", "startup")).CombinedOutput()
-		fmt.Println(string(out))
+		out, err := exec.Command("cmd", "/c", "powershell.exe", "-File", path.Join(common.GetAppDir(), "install_shortcut.ps1"), "startup").CombinedOutput()
+		fmt.Println(common.SJisToUtf8(string(out)))
 		if err != nil {
 			return err
 		}

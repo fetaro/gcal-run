@@ -1,8 +1,12 @@
 package common
 
 import (
+	"golang.org/x/text/encoding/japanese"
+	"golang.org/x/text/transform"
+	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 )
 
 const (
@@ -48,4 +52,12 @@ func GetEventIDStorePath(appDir string) string {
 
 func GetConfigPath(appDir string) string {
 	return path.Join(appDir, "config.json")
+}
+
+func SJisToUtf8(str string) (string, error) {
+	ret, err := ioutil.ReadAll(transform.NewReader(strings.NewReader(str), japanese.ShiftJIS.NewDecoder()))
+	if err != nil {
+		return "", err
+	}
+	return string(ret), err
 }

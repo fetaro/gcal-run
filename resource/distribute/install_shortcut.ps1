@@ -16,3 +16,4 @@ $Shortcut = $WsShell.CreateShortcut($ShortcutPath)
 $Shortcut.TargetPath = "${appdata}\gcal_run\gcal_run.exe"
 $Shortcut.IconLocation = "${appdata}\gcal_run\gcal_run.ico"
 $Shortcut.Save()
+Write-Host "Success to make shortcut: $ShortcutPath"
