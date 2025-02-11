@@ -2,7 +2,8 @@ package installer
 
 import (
 	"os"
-	"path"
+	"path/filepath"
+
 	"testing"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 
 func TestOAuthTokenGetter_GetAndSaveToken(t *testing.T) {
 	tokenGetter := NewOAuthTokenGetter(false)
-	tokenPath := path.Join("/tmp", time.Now().Format("20060102150405"))
+	tokenPath := filepath.Join("/tmp", time.Now().Format("20060102150405"))
 	token, err := tokenGetter.GetAndSaveToken("/tmp/gcal_run_test/credential.json", tokenPath, "/Applications/Google Chrome.app")
 	if err != nil {
 		t.Skip("Skip this test because credential.json and oauth_token is not found")

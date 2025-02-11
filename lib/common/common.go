@@ -5,7 +5,7 @@ import (
 	"golang.org/x/text/transform"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -25,33 +25,47 @@ func GetDefaultBrowserApp() string {
 
 func GetAppDir() string {
 	if IsWindows() {
-		return path.Join(os.Getenv("APPDATA"), "gcal_run")
+		return filepath.Join(os.Getenv("APPDATA"), "gcal_run")
 	} else {
-		return path.Join(os.Getenv("HOME"), ".gcal_run")
+		return filepath.Join(os.Getenv("HOME"), ".gcal_run")
 	}
 }
 
 func GetBinPath(appDir string) string {
-	return path.Join(appDir, "gcal_run")
+	if IsWindows() {
+		return filepath.Join(appDir, "gcal_run.exe")
+	} else {
+		return filepath.Join(appDir, "gcal_run")
+	}
 }
 func GetLogPath(appDir string) string {
-	return path.Join(appDir, "gcal_run.log")
+	return filepath.Join(appDir, "gcal_run.log")
 }
 
 func GetServiceLogPath(appDir string) string {
-	return path.Join(appDir, "service.log")
+	return filepath.Join(appDir, "service.log")
 }
 
 func GetTokenPath(appDir string) string {
-	return path.Join(appDir, "oauth_token")
+	return filepath.Join(appDir, "oauth_token")
 }
 
 func GetEventIDStorePath(appDir string) string {
-	return path.Join(appDir, "event_id_store")
+	return filepath.Join(appDir, "event_id_store")
 }
 
 func GetConfigPath(appDir string) string {
-	return path.Join(appDir, "config.json")
+	return filepath.Join(appDir, "config.json")
+}
+
+func GetWinIconPath(appDir string) string {
+	return filepath.Join(appDir, "gcal_run.ico")
+}
+func GetWinDesktopShortcutPath() string {
+	return filepath.Join(os.Getenv("HOMEPATH"), "Desktop", "gcal_run.lnk")
+}
+func GetWinStartupShortcutPath() string {
+	return filepath.Join(os.Getenv("APPDATA"), "Microsoft", "Windows", "Start Menu", "Programs", "Startup", "gcal_run.lnk")
 }
 
 func SJisToUtf8(str string) (string, error) {

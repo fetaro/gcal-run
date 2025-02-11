@@ -11,11 +11,24 @@ type Uninstaller struct{}
 func NewUninstaller() *Uninstaller {
 	return &Uninstaller{}
 }
-func (u *Uninstaller) Uninstall(installDir string) error {
-	fmt.Printf("ツールは %s にインストールされています\n", installDir)
+func (u *Uninstaller) Uninstall(installDir string, interactive bool) error {
 	var err error
-	if PrintAndScanStdInput("アンインストールしますか(y/n) >  ") == "y" {
-		if !common.IsWindows() {
+	if interactive && PrintAndScanStdInput("アンインストールしますか(y/n) >  ") == "y" {
+		if common.IsWindows() {
+			// ショートカットの削除
+			err = os.Remove(common.GetWinDesktopShortcutPath())
+			if err != nil {
+				return fmt.Errorf("デスクトップショートカットの削除に失敗しました: %v\n", err)
+			}
+			fmt.Printf("デスクトップショートカットを削除しました: %s\n", common.GetWinDesktopShortcutPath())
+			if common.FileExists(common.GetWinStartupShortcutPath()) {
+				err = os.Remove(common.GetWinStartupShortcutPath())
+				if err != nil {
+					return fmt.Errorf("スタートアップの登録削除に失敗しましたが続行します: %v\n", err)
+				}
+				fmt.Printf("スタートアップの登録を削除しました: %s\n", common.GetWinStartupShortcutPath())
+			}
+		} else {
 			// 常駐プロセスの停止
 			err = NewDaemonCtrl().StopDaemon()
 			if err != nil {
