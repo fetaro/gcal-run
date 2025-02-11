@@ -71,6 +71,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GT }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/gcal-run_windows_amd64_${{ env.tag }}.tar.gz
-          asset_name: gcal-run_windows_amd64_${{ env.tag }}.tar.gz
-          asset_content_type: application/gzip
+          asset_path: ./dist/gcal-run_windows_amd64_${{ env.tag }}.zip
+          asset_name: gcal-run_windows_amd64_${{ env.tag }}.zip
+          asset_content_type: application/zip

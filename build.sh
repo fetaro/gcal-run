@@ -62,11 +62,13 @@ for i in "${dataArray[@]}"; do
     if [ "${GOOS}" = "windows" ]; then
       # Windowsの場合はインストールに必要な資材や、ファイルをコピー
       cp ${SCRIPT_DIR}/resource/distribute/* "${TARGET_DIR}"
+      cd "${SCRIPT_DIR}/dist"
+      zip -r ${NAME}.zip ${NAME}
+    else
+      # アーカイブ
+      cd "${SCRIPT_DIR}/dist"
+      tar zcvf ${NAME}.tar.gz ${NAME}
     fi
-
-    # アーカイブ
-    cd "${SCRIPT_DIR}/dist"
-    tar zcvf ${NAME}.tar.gz ${NAME}
 done
 
 cd "${SCRIPT_DIR}"
