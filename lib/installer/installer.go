@@ -5,7 +5,7 @@ import (
 	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -23,16 +23,21 @@ func (i *Installer) MakeConfigFromUserInput() *common.Config {
 	for {
 		credPath = PrintAndScanStdInput("GoogleカレンダーAPIのクレデンシャルパスを指定してください > ")
 		if !common.FileExists(credPath) {
-			fmt.Println("GoogleカレンダーAPIのクレデンシャルパスを指定してください。再度入力してください")
-		} else {
-			break
+			fmt.Println("ファイルが見つかりません。再度入力してください")
+			continue
 		}
+		_, err := os.ReadFile(credPath)
+		if err != nil {
+			fmt.Printf("ファイルが読み込めません。再度入力してください: %v\n", err)
+			continue
+		}
+		break
 	}
 	fmt.Println("")
 
 	var browserApp string
 	for {
-		browserApp = PrintAndScanStdInput(fmt.Sprintf("ブラウザアプリケーションのパスを指定してください\nデフォルトは「%s」です。デフォルトで良い場合は何も入力せずにEnterを押してください\n> ", common.GetDefaultBrowserApp()))
+		browserApp = PrintAndScanStdInput(fmt.Sprintf("ブラウザアプリケーションのパスを指定してください\nデフォルトはGoogle Chromeでパスは「%s」です。\nデフォルトで良い場合は何も入力せずにEnterを押してください\n> ", common.GetDefaultBrowserApp()))
 		if browserApp == "" {
 			browserApp = common.GetDefaultBrowserApp()
 			break
@@ -66,11 +71,6 @@ func (i *Installer) MakeConfigFromUserInput() *common.Config {
 }
 
 func (i *Installer) InstallFiles(config *common.Config, appDir string) error {
-	//実行しているディレクトリの正しさのチェック
-	if common.IsWindows() && !common.FileExists("gcal_run.exe") || !common.IsWindows() && !common.FileExists("gcal_run") {
-		return fmt.Errorf("インストラーのフォルダにあるべきファイルがありません。インストーラーを正しいディレクトリで実行してください")
-	}
-
 	if !common.FileExists(appDir) {
 		err := os.MkdirAll(appDir, 0755)
 		if err != nil {
@@ -95,10 +95,16 @@ func (i *Installer) InstallFiles(config *common.Config, appDir string) error {
 	fmt.Printf("ツールをインストールディレクトリにコピーします. \".\" -> \"%s\"\n", appDir)
 	CopyDir(".", appDir)
 
-	if !common.IsWindows() {
+	if common.IsWindows() {
+		err := NewWinShortcutMaker(appDir).MakeShortCut(common.GetWinDesktopShortcutPath())
+		if err != nil {
+			return err
+		}
+		fmt.Println("デスクトップにショートカットを作成しました")
+	} else {
 		// バイナリファイルに実行権限を付与
 		for _, fileName := range []string{"gcal_run", "installer"} {
-			filePath := path.Join(appDir, fileName)
+			filePath := filepath.Join(appDir, fileName)
 			fmt.Printf("ファイル %s に実行権限を付与します\n", filePath)
 			err := exec.Command("chmod", "+x", filePath).Run()
 			if err != nil {
@@ -121,24 +127,23 @@ func (i *Installer) InstallFiles(config *common.Config, appDir string) error {
 }
 
 func (i *Installer) StartAtWindows(appDir string) error {
-	fmt.Println("プログラムを動かすには %s をダブルクリックして起動してください", common.GetBinPath(appDir))
-	fmt.Println("")
-	if PrintAndScanStdInput("デスクトップにショートカットを作りますか？ (y/n) > ") == "y" {
-		out, err := exec.Command("cmd", "/c", "powershell.exe", "-File", path.Join(common.GetAppDir(), "install_shortcut.ps1"), "desktop").CombinedOutput()
-		fmt.Println(common.SJisToUtf8(string(out)))
-		if err != nil {
-			return err
-		}
-	}
 	if PrintAndScanStdInput("自動で起動されるように、スタートアップに登録しますか？ (y/n) > ") == "y" {
-		out, err := exec.Command("cmd", "/c", "powershell.exe", "-File", path.Join(common.GetAppDir(), "install_shortcut.ps1"), "startup").CombinedOutput()
-		fmt.Println(common.SJisToUtf8(string(out)))
+		err := NewWinShortcutMaker(appDir).MakeShortCut(common.GetWinStartupShortcutPath())
 		if err != nil {
 			return err
 		}
 	}
+
+	fmt.Println("----------------------------------------------------------------------------------------------")
+	fmt.Println("")
+	fmt.Println("プログラムを手動で動かすにはデスクトップにある gcal_run のショートカットをダブルクリックして起動してください")
+	fmt.Println("")
+	fmt.Println("----------------------------------------------------------------------------------------------")
+	fmt.Println("")
+
 	return nil
 }
+
 func (i *Installer) StartAtMac(appDir string) error {
 	var err error
 	if PrintAndScanStdInput("自動で起動されるように、Macの常駐プロセスを登録して起動しますか？ (y/n) > ") == "y" {
