@@ -36,15 +36,6 @@ Web会議の開始時間を忘れがちな人にオススメです。
 
 ## インストール方法
 
-#### 1. GoogleAPIのクレデンシャルファイルの取得
-
-[このマニュアル](https://github.com/fetaro/gcal-run/wiki/how_to_get_google_calendar_api_credential_file)などを参考にして
-Google Calendar APIのJSON形式のクレデンシャルファイルを取得してください。
-
-社内の方は私に依頼いただいたら用意できます。
-
-#### 2. ツールのインストール
-
 * [Macでのインストール方法](./doc/INSTALL_MAC.md)
 * [Windowsでのインストール方法](./doc/INSTALL_WINDOWS.md)
 
