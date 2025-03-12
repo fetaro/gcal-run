@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"time"
 )
 
@@ -16,58 +15,25 @@ type Installer struct {
 func NewInstaller() *Installer {
 	return &Installer{}
 }
-func (i *Installer) MakeConfigFromUserInput() *common.Config {
+func (i *Installer) MakeConfigFromUserInput() (*common.Config, error) {
 	var err error
-
-	var credPath string
-	for {
-		credPath = PrintAndScanStdInput("GoogleカレンダーAPIのクレデンシャルパスを指定してください > ")
-		if !common.FileExists(credPath) {
-			fmt.Println("ファイルが見つかりません。再度入力してください")
-			continue
-		}
-		_, err := os.ReadFile(credPath)
-		if err != nil {
-			fmt.Printf("ファイルが読み込めません。再度入力してください: %v\n", err)
-			continue
-		}
-		break
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return nil, err
 	}
-	fmt.Println("")
-
-	var browserApp string
-	for {
-		browserApp = PrintAndScanStdInput(fmt.Sprintf("ブラウザアプリケーションのパスを指定してください\nデフォルトはGoogle Chromeでパスは「%s」です。\nデフォルトで良い場合は何も入力せずにEnterを押してください\n> ", common.GetDefaultBrowserApp()))
-		if browserApp == "" {
-			browserApp = common.GetDefaultBrowserApp()
-			break
-		} else if !common.FileExists(browserApp) {
-			fmt.Println("ブラウザアプリケーションが存在しません。再度入力してください")
-		} else {
-			break
-		}
+	credPath, err := NewInputCredPath().Run(currentDir)
+	if err != nil {
+		return nil, err
 	}
-	fmt.Println("")
-
-	var minutesAgoStr string
-	var minutesAgo int
-	for {
-		minutesAgoStr = PrintAndScanStdInput(fmt.Sprintf("会議の何分前に起動するか指定してください\nデフォルトは「%d分」です。デフォルトで良い場合は何も入力せずにEnterを押してください\n> ", common.DefaultMinutesAgo))
-		if minutesAgoStr == "" {
-			minutesAgo = common.DefaultMinutesAgo
-			break
-		}
-		minutesAgo, err = strconv.Atoi(minutesAgoStr)
-		if err != nil {
-			fmt.Println("数値を入力してください")
-			continue
-		} else {
-			break
-		}
+	minutesAgo, err := NewInputMinutes().Run()
+	if err != nil {
+		return nil, err
 	}
-	fmt.Println("")
-
-	return common.NewConfig(credPath, minutesAgo, browserApp)
+	browserPath, err := NewBrowserPicker().Run()
+	if err != nil {
+		return nil, err
+	}
+	return common.NewConfig(credPath, minutesAgo, browserPath), nil
 }
 
 func (i *Installer) InstallFiles(config *common.Config, appDir string) error {
@@ -177,8 +143,11 @@ func (i *Installer) StartAtMac(appDir string) error {
 }
 
 func (i *Installer) Install(appDir string) error {
-	config := i.MakeConfigFromUserInput()
-	err := i.InstallFiles(config, appDir)
+	config, err := i.MakeConfigFromUserInput()
+	if err != nil {
+		return err
+	}
+	err = i.InstallFiles(config, appDir)
 	if err != nil {
 		return err
 	}
