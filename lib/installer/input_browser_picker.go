@@ -2,10 +2,17 @@ package installer
 
 import (
 	"errors"
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"os"
+	"path/filepath"
 )
 
+type Browser struct {
+	Name string
+	Path string
+}
 type InputBrowser struct {
 	selectedName string
 	selectedPath string
@@ -24,12 +31,29 @@ func (f *InputBrowser) Run() (string, error) {
 	infoView.SetBorder(true)
 	infoView.SetText("ブラウザアプリケーションを選択してください")
 
+	var browserList []Browser
+	if common.IsWindows() {
+		browserList = []Browser{
+			{"Google Chrome", "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"},
+			{"Google Chrome", "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"},
+			{"Edge", "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe"},
+			{"Edge", "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"},
+			{"Edge", filepath.Join(os.Getenv("HOME"), "AppData\\Local\\Microsoft\\msedge.exe")},
+		}
+	} else {
+		browserList = []Browser{
+			{"Google Chrome", "/Applications/Google Chrome.app"},
+			{"Safari", "/Applications/Safari.app"},
+		}
+	}
 	listView := tview.NewList().
 		ShowSecondaryText(true).
 		SetSelectedFocusOnly(true)
-	listView.AddItem("Google Chrome", "/Applications/Google Chrome.app", 0, nil)
-	listView.AddItem("Safari", "/Applications/Safari.app", 0, nil)
-
+	for _, b := range browserList {
+		if common.FileExists(b.Path) {
+			listView.AddItem(b.Name, b.Path, 0, nil)
+		}
+	}
 	footerView := tview.NewTextView().SetText("'q' を押すとインストールを中止します")
 
 	// build UI
