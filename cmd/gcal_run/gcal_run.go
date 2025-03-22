@@ -30,6 +30,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	logger.Info("------------------------------------------------")
+	logger.Info("GoogleカレンダーWeb会議自動起動ツール(gcal-run)")
+	logger.Info("------------------------------------------------")
 	logger.Info("バージョン: %s", version)
 	logger.Info("設定ファイルパス: %s", *configPath)
 	logger.Info(config.String())
