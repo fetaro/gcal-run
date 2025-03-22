@@ -15,14 +15,6 @@ const (
 	ToolName           = "GoogleカレンダーTV会議強制起動ツール"
 )
 
-func GetDefaultBrowserApp() string {
-	if IsWindows() {
-		return "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
-	} else {
-		return "/Applications/Google Chrome.app"
-	}
-}
-
 func GetAppDir() string {
 	if IsWindows() {
 		return filepath.Join(os.Getenv("APPDATA"), "gcal_run")

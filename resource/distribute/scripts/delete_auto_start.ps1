@@ -1,9 +1,9 @@
-Unregister-ScheduledTask -TaskName "GCAL-TUN-TEST" -Confirm:$false
+Unregister-ScheduledTask -TaskName "GCAL-RUN" -Confirm:$false
 
 if($? -eq "True"){
-    Write-Host "Success to delete AUTO START"
+    Write-Host "Success to uninstall AUTO-START"
 }else{
-    Write-Host "Fail to delete up AUTO START"
+    Write-Host "Error!"
 }
 Write-Host ""
 Read-Host "Press Enter to exit"

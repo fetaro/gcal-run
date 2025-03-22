@@ -21,13 +21,7 @@ func (u *Uninstaller) Uninstall(installDir string, interactive bool) error {
 				return fmt.Errorf("デスクトップショートカットの削除に失敗しました: %v\n", err)
 			}
 			fmt.Printf("デスクトップショートカットを削除しました: %s\n", common.GetWinDesktopShortcutPath())
-			if common.FileExists(common.GetWinStartupShortcutPath()) {
-				err = os.Remove(common.GetWinStartupShortcutPath())
-				if err != nil {
-					return fmt.Errorf("スタートアップの登録削除に失敗しましたが続行します: %v\n", err)
-				}
-				fmt.Printf("スタートアップの登録を削除しました: %s\n", common.GetWinStartupShortcutPath())
-			}
+			fmt.Println("プログラムの自動実行を登録している場合は uninstall_auto_start.ps1 のファイルを右クリックし「PowerShell で実行」を選択し、自動実行を削除してください")
 		} else {
 			// 常駐プロセスの停止
 			err = NewDaemonCtrl().StopDaemon()

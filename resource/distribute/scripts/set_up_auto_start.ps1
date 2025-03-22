@@ -20,14 +20,15 @@ $action = New-ScheduledTaskAction -Execute "${env:APPDATA}\gcal_run\gcal_run.exe
 $userId = (Get-WmiObject -Query "SELECT * FROM Win32_UserAccount WHERE Name='$env:USERNAME'").SID
 $principal = New-ScheduledTaskPrincipal -UserId $userId -LogonType Interactive -RunLevel Limited
 
-$task = New-ScheduledTask -Action $action -Trigger $triggers -Principal $principal
+$task = New-ScheduledTask -Action $action -Trigger $triggers -Principal $principal -Description "Google Calendar Auto Run Tool"
 
-Register-ScheduledTask -InputObject $task -TaskName "GCAL-TUN-TEST"
+Register-ScheduledTask -InputObject $task -TaskName "GCAL-RUN"
 
 if($? -eq "True"){
-    Write-Host "Success Set up AUTO START"
+    Write-Host "Register ScheduledTask named GCAL-RUN"
+    Write-Host "Success to install AUTO-START"
 }else{
-    Write-Host "Fail to Set up AUTO START"
+    Write-Host "Error!"
 }
 Write-Host ""
 Read-Host "Press Enter to exit"
