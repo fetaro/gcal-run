@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"github.com/fetaro/gcal_forcerun_go/lib/gcal_run"
 	"os"
@@ -61,6 +62,7 @@ func main() {
 			logger.Error("エラーのため異常終了: %v", err)
 			os.Exit(1)
 		}
+		fmt.Print(".")
 		logger.Debug("wait %d sec", poolingIntervalSec)
 		time.Sleep(time.Duration(poolingIntervalSec) * time.Second)
 	}
