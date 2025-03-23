@@ -3,6 +3,7 @@ package gcal_run
 import (
 	"fmt"
 	"github.com/fetaro/gcal_forcerun_go/lib/common"
+	"google.golang.org/api/calendar/v3"
 	"time"
 )
 
@@ -11,6 +12,11 @@ type Runner struct {
 	AppDir       string
 	EventIDStore *EventIDStore
 }
+
+var (
+	maxRetryNum = 100
+	retrySec    = 30
+)
 
 func NewRunner(config *common.Config, appDir string) *Runner {
 	return &Runner{
@@ -21,18 +27,29 @@ func NewRunner(config *common.Config, appDir string) *Runner {
 }
 
 func (r *Runner) Run() error {
+
 	logger, err := GetLogger(common.GetLogPath(common.GetAppDir()))
 	if err != nil {
 		return err
 	}
-	calendar := NewCalendar(r.Config.CredentialPath, common.GetTokenPath(r.AppDir))
+	gCalendar := NewCalendar(r.Config.CredentialPath, common.GetTokenPath(r.AppDir))
+	var events *calendar.Events
 
-	events, err := calendar.GetCalendarEvents(time.Now())
-	if err != nil {
-		return fmt.Errorf("failed to get calendar events: %v", err)
+	for i := 1; i <= maxRetryNum; i++ {
+		events, err = gCalendar.GetCalendarEvents(time.Now())
+		if err != nil {
+			if i == maxRetryNum {
+				return fmt.Errorf("カレンダーイベントの取得に%d秒間隔で%d回連続で失敗しました。", retrySec, maxRetryNum)
+			} else {
+				logger.Warn("カレンダーイベントの取得に失敗。%d秒後にリトライします(%d回目/%d回):%v", retrySec, i, maxRetryNum, err)
+				time.Sleep(time.Duration(retrySec) * time.Second)
+			}
+		} else {
+			break
+		}
 	}
 	if len(events.Items) == 0 {
-		logger.Debug("no calendar events")
+		logger.Debug("no gCalendar events")
 		return nil
 	}
 	for _, item := range events.Items {

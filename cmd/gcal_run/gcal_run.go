@@ -16,6 +16,7 @@ var poolingIntervalSec = 30
 var (
 	app        = kingpin.New("gcal_run", "gcal_run: "+common.ToolName)
 	configPath = app.Flag("config", "設定ファイルのパス").Short('c').Default(common.GetConfigPath(common.GetAppDir())).String()
+	debug      = app.Flag("debug", "デバッグログを出力する").Bool()
 )
 
 func main() {
@@ -24,6 +25,10 @@ func main() {
 	config, err := common.LoadConfigFromPath(*configPath)
 	if err != nil {
 		panic(err)
+	}
+	if *debug {
+		// 環境変数にDEBUG=1を設定する
+		os.Setenv("DEBUG", "1")
 	}
 	runner := gcal_run.NewRunner(config, common.GetAppDir())
 	logger, err := gcal_run.GetLogger(common.GetLogPath(common.GetAppDir()))
@@ -45,14 +50,15 @@ func main() {
 		sig := <-sigs
 		logger.Info("シグナル%sをキャッチ", sig)
 		runner.CleanUp()
-		logger.Info("終了")
 		os.Exit(0)
 	}()
+	// 終了メッセージ
+	defer logger.Info("終了")
 	logger.Info("開始。Googleカレンダーのイベントを%d秒毎にチェックします。", poolingIntervalSec)
 	for {
 		err := runner.Run()
 		if err != nil {
-			logger.Error("Error: %v", err)
+			logger.Error("エラーのため異常終了: %v", err)
 			os.Exit(1)
 		}
 		logger.Debug("wait %d sec", poolingIntervalSec)
