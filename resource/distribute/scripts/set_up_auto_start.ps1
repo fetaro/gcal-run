@@ -9,9 +9,11 @@ $triggerOnWorkstationLock = New-CimInstance `
       StateChange = 8  # TASK_SESSION_STATE_CHANGE_TYPE.TASK_SESSION_UNLOCK (taskschd.h)
     } `
     -ClientOnly
+$triggerOnWorkstationLock.Delay = "PT30S"
 
 # make trigger for "at logon"
 $triggerAtLogon = New-ScheduledTaskTrigger -AtLogon
+$triggerAtLogon.Delay = "PT30S"
 
 $triggers = @($triggerOnWorkstationLock, $triggerAtLogon)
 
