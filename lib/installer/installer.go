@@ -93,10 +93,15 @@ func (i *Installer) InstallFiles(config *common.Config, appDir string) error {
 }
 
 func (i *Installer) StartAtWindows(appDir string) error {
-
+	if PrintAndScanStdInput("自動で起動されるように、スタートアップに登録しますか？ (y/n) > ") == "y" {
+		err := NewWinShortcutMaker(appDir).MakeShortCut(common.GetWinStartupShortcutPath())
+		if err != nil {
+			return err
+		}
+	}
 	fmt.Println("----------------------------------------------------------------------------------------------")
 	fmt.Println("")
-	fmt.Println("プログラムを自動で動かすには install_auto_start.ps1 のファイルを右クリックし「PowerShell で実行」を選択してください")
+	fmt.Println("プログラムを手動で動かすにはデスクトップにある gcal_run のショートカットをダブルクリックして起動してください")
 	fmt.Println("")
 	fmt.Println("----------------------------------------------------------------------------------------------")
 	fmt.Println("")
