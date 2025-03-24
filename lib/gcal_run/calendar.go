@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	ApiMaxResult = 4
+	ApiMaxResult  = 4
+	ApiTimeoutSec = 5
 )
 
 type GCal struct {
@@ -35,7 +36,8 @@ func (g *GCal) GetCalendarEvents(basisTime time.Time) (*calendar.Events, error) 
 	if err != nil {
 		return nil, err
 	}
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(ApiTimeoutSec)*time.Second)
+	defer cancel()
 	b, err := os.ReadFile(g.CredentialPath)
 	if err != nil {
 		return nil, fmt.Errorf("fail to read credential file: %v", err)
@@ -64,9 +66,10 @@ func (g *GCal) GetCalendarEvents(basisTime time.Time) (*calendar.Events, error) 
 		return nil, fmt.Errorf("fail to make CalendarService: %v", err)
 	}
 
-	logger.Debug("カレンダーから最大 %d 件のイベントを取得", ApiMaxResult)
+	logger.Debug("カレンダーから最大 %d 件のイベントを取得を開始", ApiMaxResult)
 	events, err := srv.Events.List("primary").ShowDeleted(false).
-		SingleEvents(true).TimeMin(basisTime.Format(time.RFC3339)).MaxResults(ApiMaxResult).OrderBy("startTime").Do()
+		SingleEvents(true).TimeMin(basisTime.Format(time.RFC3339)).MaxResults(ApiMaxResult).
+		OrderBy("startTime").Context(ctx).Do()
 	if err != nil {
 		return nil, fmt.Errorf("fail to list events: %v", err)
 	}
