@@ -22,7 +22,7 @@ func TestGCalGetCalendarEvents(t *testing.T) {
 	basisTime, err := time.Parse(time.RFC3339, dateStr)
 	assert.NoError(t, err)
 	gcal := NewCalendar(credentialPath, oauthTokenPath)
-	calendarEventList, err := gcal.GetCalendarEvents(basisTime)
+	calendarEventList, err := gcal.GetCalendarEvents(basisTime,4)
 	assert.NoError(t, err)
 	assert.Equal(t, "test1", calendarEventList.Items[0].Summary)
 	assert.Equal(t, "test2", calendarEventList.Items[1].Summary)

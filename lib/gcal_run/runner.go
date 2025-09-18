@@ -14,8 +14,9 @@ type Runner struct {
 }
 
 var (
-	maxRetryNum = 100
-	retrySec    = 30
+	ApiMaxResult = 4
+	maxRetryNum  = 100
+	retrySec     = 30
 )
 
 func NewRunner(config *common.Config, appDir string) *Runner {
@@ -36,7 +37,7 @@ func (r *Runner) Run() error {
 	var events *calendar.Events
 
 	for i := 1; i <= maxRetryNum; i++ {
-		events, err = gCalendar.GetCalendarEvents(time.Now())
+		events, err = gCalendar.GetCalendarEvents(time.Now(), ApiMaxResult)
 		if err != nil {
 			if i == maxRetryNum {
 				return fmt.Errorf("カレンダーイベントの取得に%d秒間隔で%d回連続で失敗しました。", retrySec, maxRetryNum)
