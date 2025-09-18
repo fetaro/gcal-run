@@ -25,23 +25,31 @@ func (p *URLParser) Parse(event *calendar.Event) (string, error) {
 		}
 	}
 	// LocationにURLが含まれている場合は採用
-	urlPrefixList := []string{"https://zoom.us", "https://teams.microsoft.com/l/meetup-join", "https://meet.google.com"}
-	for _, urlPrefix := range urlPrefixList {
+	locationUrlPatternList := []string{
+		"https://zoom.us",
+		"https://us02web.zoom.us",
+		"https://teams.microsoft.com/l/meetup-join",
+		"https://meet.google.com",
+	}
+	for _, urlPrefix := range locationUrlPatternList {
 		if strings.Contains(event.Location, urlPrefix) {
 			return event.Location, nil
 		}
-		// DescriptionにURLが含まれている場合は採用
-		descriptionRegExpList := []string{
-			"<a href=\"(" + urlPrefix + ".*?)\">.*",
-			"<(" + urlPrefix + ".*)>",
-		}
-		for _, descriptionRegExp := range descriptionRegExpList {
-			tagMatcher := regexp.MustCompile(descriptionRegExp)
-			if tagMatcher.MatchString(event.Description) {
-				matched := tagMatcher.FindStringSubmatch(event.Description)
-				return matched[1], nil
-			}
+	}
+	// DescriptionにURLが含まれている場合は採用
+	descriptionUrlPatternList := []string{
+		"<(https://zoom.us.*)>",
+		"<(https://teams.microsoft.com/l/meetup-join.*)>",
+		"(https://meet.google.com/[a-z-]+)",
+		"(http://meet.google.com/[a-z-]+)",
+	}
+	for _, urlRegExp := range descriptionUrlPatternList {
+		tagMatcher := regexp.MustCompile(urlRegExp)
+		if tagMatcher.MatchString(event.Description) {
+			matched := tagMatcher.FindStringSubmatch(event.Description)
+			return matched[1], nil
 		}
 	}
-	return "", fmt.Errorf("event is not online meeting")
+	// DescriptionにURLが含まれている場合は採用
+	return "", fmt.Errorf("LocationもしくはDescriptionにTV会議のURLが含まれていません.Location=%s, Description=%s", event.Location, event.Description)
 }
