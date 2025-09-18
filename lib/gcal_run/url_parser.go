@@ -42,6 +42,9 @@ func (p *URLParser) Parse(event *calendar.Event) (string, error) {
 		"<(https://teams.microsoft.com/l/meetup-join.*)>",
 		"(https://meet.google.com/[a-z-]+)",
 		"(http://meet.google.com/[a-z-]+)",
+		"<a href=\"(https://zoom.us.*?)\">.*",
+		"<a href=\"(https://teams.microsoft.com/l/meetup-join.*?)\">.*",
+		"<a href=\"(https://meet.google.com.*?)\">.*",
 	}
 	for _, urlRegExp := range descriptionUrlPatternList {
 		tagMatcher := regexp.MustCompile(urlRegExp)
