@@ -15,7 +15,6 @@ import (
 )
 
 const (
-	ApiMaxResult  = 4
 	ApiTimeoutSec = 5
 )
 
@@ -31,7 +30,7 @@ func NewCalendar(credentialPath string, oauthTokenPath string) *GCal {
 	}
 }
 
-func (g *GCal) GetCalendarEvents(basisTime time.Time) (*calendar.Events, error) {
+func (g *GCal) GetCalendarEvents(basisTime time.Time, maxResult int) (*calendar.Events, error) {
 	logger, err := GetLogger(common.GetLogPath(common.GetAppDir()))
 	if err != nil {
 		return nil, err
@@ -66,9 +65,9 @@ func (g *GCal) GetCalendarEvents(basisTime time.Time) (*calendar.Events, error) 
 		return nil, fmt.Errorf("fail to make CalendarService: %v", err)
 	}
 
-	logger.Debug("カレンダーから最大 %d 件のイベントを取得を開始", ApiMaxResult)
+	logger.Debug("カレンダーから最大 %d 件のイベントを取得を開始", maxResult)
 	events, err := srv.Events.List("primary").ShowDeleted(false).
-		SingleEvents(true).TimeMin(basisTime.Format(time.RFC3339)).MaxResults(ApiMaxResult).
+		SingleEvents(true).TimeMin(basisTime.Format(time.RFC3339)).MaxResults(int64(maxResult)).
 		OrderBy("startTime").Context(ctx).Do()
 	if err != nil {
 		return nil, fmt.Errorf("fail to list events: %v", err)

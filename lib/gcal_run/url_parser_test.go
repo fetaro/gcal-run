@@ -78,3 +78,25 @@ ________________________________________________________________________________
 	assert.NoError(t, err)
 	assert.Equal(t, "https://teams.microsoft.com/l/meetup-join/aaaaaaa", url)
 }
+
+func TestParseMeetDescriptionHasUrl(t *testing.T) {
+	event := &calendar.Event{
+		Description: `
+Meetになりました
+<a href="https://www.google.com/url?q=http://meet.google.com/rjr-tttt-sss&amp;sa=D&amp;source=calendar&amp;ust=xxxx&amp;usg=xxxxxx" target="_blank">meet.google.com/rjr-tttt-sss</a>`,
+	}
+	url, err := NewURLParser().Parse(event)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "http://meet.google.com/rjr-tttt-sss", url)
+}
+
+func TestParseZoomLocation(t *testing.T) {
+	event := &calendar.Event{
+		Location: "https://us02web.zoom.us/j/123456789?pwd=abcdefg.1&jst=3",
+	}
+	url, err := NewURLParser().Parse(event)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "https://us02web.zoom.us/j/123456789?pwd=abcdefg.1&jst=3", url)
+}
