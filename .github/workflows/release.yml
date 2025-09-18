@@ -37,7 +37,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
           VERSION: ${{ env.tag }}
         with:
           tag_name: ${{ env.tag }}
@@ -48,7 +48,7 @@ jobs:
       - name: Upload Mac ARM64 Release Asset
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./dist/gcal-run_darwin_arm64_${{ env.tag }}.tar.gz
@@ -58,7 +58,7 @@ jobs:
       - name: Upload Mac AMD64 Release Asset
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./dist/gcal-run_darwin_amd64_${{ env.tag }}.tar.gz
@@ -68,7 +68,7 @@ jobs:
       - name: Upload Windows Release Asset
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./dist/gcal-run_windows_amd64_${{ env.tag }}.zip
