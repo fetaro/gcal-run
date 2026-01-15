@@ -60,7 +60,13 @@ func (i *Installer) InstallFiles(config *common.Config, appDir string) error {
 
 	// ツールのコピー
 	fmt.Printf("ツールをインストールディレクトリにコピーします. \".\" -> \"%s\"\n", appDir)
-	CopyDir(".", appDir)
+	for _, file := range []string{"gcal_run", "installer"} {
+		err := CopyFile(file, appDir+"/"+file)
+		if err != nil {
+			return fmt.Errorf("ファイル「%s」のコピーに失敗しました。: %v\n", file, err)
+		}
+	}
+	fmt.Println("ツールのコピーが完了しました")
 
 	if common.IsWindows() {
 		err := NewWinShortcutMaker(appDir).MakeShortCut(common.GetWinDesktopShortcutPath())
@@ -142,7 +148,6 @@ func (i *Installer) SetupAutoStartAtMac(appDir string) error {
 	return nil
 }
 
-
 func (i *Installer) InstallAutoStart(appDir string) error {
 	if common.IsWindows() {
 		return i.SetupAutoStartAtWindows(appDir)
@@ -152,6 +157,12 @@ func (i *Installer) InstallAutoStart(appDir string) error {
 }
 
 func (i *Installer) Install(appDir string) error {
+	for _, file := range []string{"gcal_run", "installer"} {
+		// ファイルの存在確認
+		if !common.FileExists(file) {
+			return fmt.Errorf("このディレクトリにインストール対象ファイル「%s」が存在しません。ファイル「%s」があるディレクトリでinstallerの実行をお願いします。", file, file)
+		}
+	}
 	config, err := i.MakeConfigFromUserInput()
 	if err != nil {
 		return err
@@ -162,4 +173,3 @@ func (i *Installer) Install(appDir string) error {
 	}
 	return i.InstallAutoStart(appDir)
 }
-
