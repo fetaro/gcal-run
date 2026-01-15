@@ -2,11 +2,12 @@ package installer
 
 import (
 	"fmt"
-	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
 )
 
 type DaemonCtrl struct{}
@@ -59,6 +60,16 @@ func (d *DaemonCtrl) GeneratePlistStr() string {
 }
 
 func (d *DaemonCtrl) CreatePListFile(confirmOverwite bool) error {
+	// ディレクトリが存在するか確認する
+	dir := filepath.Dir(d.GetPListPath())
+	if !common.FileExists(dir) {
+		fmt.Printf("LaunchAgentsディレクトリが存在しないため、作成します。ディレクトリ= %s\n", dir)
+		err := os.MkdirAll(dir, 0755)
+		if err != nil {
+			return fmt.Errorf("LaunchAgentsディレクトリの作成に失敗しました: %v", err)
+		}
+		fmt.Printf("LaunchAgentsディレクトリの作成し成功しました")
+	}
 	if common.FileExists(d.GetPListPath()) {
 		fmt.Printf("常駐プロセス(LaunchAgents)ファイルが既に存在します: %s", d.GetPListPath())
 		if confirmOverwite && PrintAndScanStdInput("上書きしますか？ (y/n) > ") != "y" {

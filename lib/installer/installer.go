@@ -2,11 +2,12 @@ package installer
 
 import (
 	"fmt"
-	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
+
+	"github.com/fetaro/gcal_forcerun_go/lib/common"
 )
 
 type Installer struct {
@@ -92,7 +93,7 @@ func (i *Installer) InstallFiles(config *common.Config, appDir string) error {
 	return nil
 }
 
-func (i *Installer) StartAtWindows(appDir string) error {
+func (i *Installer) SetupAutoStartAtWindows(appDir string) error {
 	if PrintAndScanStdInput("自動で起動されるように、スタートアップに登録しますか？ (y/n) > ") == "y" {
 		err := NewWinShortcutMaker(appDir).MakeShortCut(common.GetWinStartupShortcutPath())
 		if err != nil {
@@ -109,7 +110,7 @@ func (i *Installer) StartAtWindows(appDir string) error {
 	return nil
 }
 
-func (i *Installer) StartAtMac(appDir string) error {
+func (i *Installer) SetupAutoStartAtMac(appDir string) error {
 	var err error
 	if PrintAndScanStdInput("自動で起動されるように、Macの常駐プロセスを登録して起動しますか？ (y/n) > ") == "y" {
 
@@ -141,6 +142,15 @@ func (i *Installer) StartAtMac(appDir string) error {
 	return nil
 }
 
+
+func (i *Installer) InstallAutoStart(appDir string) error {
+	if common.IsWindows() {
+		return i.SetupAutoStartAtWindows(appDir)
+	} else {
+		return i.SetupAutoStartAtMac(appDir)
+	}
+}
+
 func (i *Installer) Install(appDir string) error {
 	config, err := i.MakeConfigFromUserInput()
 	if err != nil {
@@ -150,9 +160,6 @@ func (i *Installer) Install(appDir string) error {
 	if err != nil {
 		return err
 	}
-	if common.IsWindows() {
-		return i.StartAtWindows(appDir)
-	} else {
-		return i.StartAtMac(appDir)
-	}
+	return i.InstallAutoStart(appDir)
 }
+

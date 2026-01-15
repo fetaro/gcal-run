@@ -3,10 +3,11 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"os"
+
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/fetaro/gcal_forcerun_go/lib/common"
 	"github.com/fetaro/gcal_forcerun_go/lib/installer"
-	"os"
 )
 
 var version string // ビルドスクリプトで埋め込む
@@ -38,8 +39,14 @@ func main() {
 	case "update":
 		err = installer.NewUpdator().Update(appDir)
 	case "uninstall":
-		err = installer.NewUninstaller().Uninstall(appDir, true)
-	default:
+		installer.NewUninstaller().Uninstall(appDir, true)
+	case "install-auto-start":
+		fmt.Println("自動起動登録のみを行います")
+		err = installer.NewInstaller().InstallAutoStart(appDir)
+	case "uninstall-auto-start":
+		fmt.Println("自動起動登録の解除のみを行います")
+		installer.NewUninstaller().UninstallAutoStart(appDir)
+	case "":
 		// インタラクティブモード
 		if !common.FileExists(appDir) {
 			fmt.Println("現状、" + common.ToolName + "はまだインストールされていません")
@@ -67,11 +74,14 @@ func main() {
 			case "1":
 				err = installer.NewUpdator().Update(appDir)
 			case "2":
-				err = installer.NewUninstaller().Uninstall(appDir, true)
+				installer.NewUninstaller().Uninstall(appDir, true)
 			default:
 				fmt.Println("無効なコマンドです。終了します")
 			}
 		}
+	default:
+		fmt.Println("無効な引数です。引数は、install, update, uninstall, install-auto-start, uninstall-auto-start, [引数なし] のいずれかを指定してください")
+		os.Exit(1)
 	}
 	if err != nil {
 		fmt.Printf("エラー発生: %v\n", err.Error())
